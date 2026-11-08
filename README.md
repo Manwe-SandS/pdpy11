@@ -71,7 +71,8 @@ play_turbo_wav  ["name on tape"]
 
 Sound is played by the system: PlaySound on Windows, `afplay` on macOS, `paplay` or `aplay` on Linux.
 
-Text macros, conditional assembly and repeat blocks are described in [docs/MACROS.md](docs/MACROS.md) (in Russian).
+The language and the command line are described in [docs/SYNTAX.md](docs/SYNTAX.md).
+Text macros, conditional assembly and repeat blocks are described in detail in [docs/MACROS.md](docs/MACROS.md) (in Russian).
 The tool `tools/convert-to.c` (`make convert-to`) rewrites sources written for other assemblers in the PDPy11 style.
 
 `tests/DIFFERENCES.md` lists the intentional differences from the Python version.
