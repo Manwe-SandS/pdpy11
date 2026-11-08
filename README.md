@@ -20,11 +20,11 @@ Compiled binaries for every platform are published on the
 
 | Platform | Download |
 |---|---|
-| Windows 64-bit | [pdpy11-v2.0.4-c1-windows-x64.zip](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.0.4-c1/pdpy11-v2.0.4-c1-windows-x64.zip) |
-| Windows 32-bit | [pdpy11-v2.0.4-c1-windows-x86.zip](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.0.4-c1/pdpy11-v2.0.4-c1-windows-x86.zip) |
-| macOS (Apple silicon and Intel) | [pdpy11-v2.0.4-c1-macos-universal.zip](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.0.4-c1/pdpy11-v2.0.4-c1-macos-universal.zip) |
-| Linux x86-64 | [pdpy11-v2.0.4-c1-linux-x64.tar.gz](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.0.4-c1/pdpy11-v2.0.4-c1-linux-x64.tar.gz) |
-| Linux ARM64 | [pdpy11-v2.0.4-c1-linux-arm64.tar.gz](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.0.4-c1/pdpy11-v2.0.4-c1-linux-arm64.tar.gz) |
+| Windows 64-bit | [pdpy11-v2.0.4-c2-windows-x64.zip](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.0.4-c2/pdpy11-v2.0.4-c2-windows-x64.zip) |
+| Windows 32-bit | [pdpy11-v2.0.4-c2-windows-x86.zip](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.0.4-c2/pdpy11-v2.0.4-c2-windows-x86.zip) |
+| macOS (Apple silicon and Intel) | [pdpy11-v2.0.4-c2-macos-universal.zip](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.0.4-c2/pdpy11-v2.0.4-c2-macos-universal.zip) |
+| Linux x86-64 | [pdpy11-v2.0.4-c2-linux-x64.tar.gz](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.0.4-c2/pdpy11-v2.0.4-c2-linux-x64.tar.gz) |
+| Linux ARM64 | [pdpy11-v2.0.4-c2-linux-arm64.tar.gz](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.0.4-c2/pdpy11-v2.0.4-c2-linux-arm64.tar.gz) |
 
 Every archive contains the compiler, the source converter `convert-to`, the Sublime Text files (syntax, colour
 scheme, build system), [INSTALL.md](INSTALL.md) with step-by-step installation instructions and the documentation.
