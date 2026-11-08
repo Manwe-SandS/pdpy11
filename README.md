@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="logo.png" alt="pdpy11" width="240">
+</p>
+
 # PDPy11 (C version)
 
 A cross-assembler for PDP-11 and its relatives (Elektronika BK-0010 / BK-0011M, UKNC, Soyuz-Neon, Elektronika-60).
@@ -8,11 +12,22 @@ version, and it runs about 100 times faster with about 5 times less memory.
 
 (c) Ivanq & Manwe 2018-2026. Licensed under GNU GPLv3 or (at your option) any later version.
 
-## Download and install
+## Releases
 
-Ready-to-use archives for Windows (x64, x86), macOS (Apple silicon and Intel), and Linux (x64, arm64) are on the
-[Releases](../../releases) page. Every archive contains the compiler, the Sublime Text support files and
-[INSTALL.md](INSTALL.md) with step-by-step instructions.
+Compiled binaries for every platform are published on the
+[**Releases**](https://github.com/Manwe-SandS/pdpy11/releases/latest) page
+(the checksums are in `SHA256SUMS`):
+
+| Platform | Download |
+|---|---|
+| Windows 64-bit | [pdpy11-v2.0.4-c1-windows-x64.zip](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.0.4-c1/pdpy11-v2.0.4-c1-windows-x64.zip) |
+| Windows 32-bit | [pdpy11-v2.0.4-c1-windows-x86.zip](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.0.4-c1/pdpy11-v2.0.4-c1-windows-x86.zip) |
+| macOS (Apple silicon and Intel) | [pdpy11-v2.0.4-c1-macos-universal.zip](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.0.4-c1/pdpy11-v2.0.4-c1-macos-universal.zip) |
+| Linux x86-64 | [pdpy11-v2.0.4-c1-linux-x64.tar.gz](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.0.4-c1/pdpy11-v2.0.4-c1-linux-x64.tar.gz) |
+| Linux ARM64 | [pdpy11-v2.0.4-c1-linux-arm64.tar.gz](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.0.4-c1/pdpy11-v2.0.4-c1-linux-arm64.tar.gz) |
+
+Every archive contains the compiler, the Sublime Text files (syntax, colour scheme, build system) and
+[INSTALL.md](INSTALL.md) with step-by-step installation instructions.
 
 ## Build from source
 

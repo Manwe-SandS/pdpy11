@@ -12,7 +12,7 @@ PDPy11 is a single executable: there is nothing to install besides copying files
 | `PDPy11.sublime-color-scheme` | colour scheme |
 | `pdpy11.sublime-build` | build system (Ctrl+B / Command+B) |
 
-Pick the archive for your system from the [Releases](../../releases) page:
+Pick the archive for your system from the [Releases](https://github.com/Manwe-SandS/pdpy11/releases/latest) page:
 
 | System | Archive |
 |---|---|
