@@ -128,8 +128,8 @@ Parentheses group subexpressions. Operators in order from the **tightest** to th
 | 7 | `\|` `!` | bitwise OR (`!` is the MACRO-11 spelling) |
 
 Operators of one level are evaluated from left to right. The order is the same as in C and Python for the operators
-they share: `1<<2+1` is `1<<(2+1)` = 8, and `1|2^3&4` is `1|(2^(3&4))`. (In MACRO-11, by contrast, `+`, `-`, `*`, `/`,
-`&` and `!` are all one level, evaluated from left to right.)
+they share: `1<<2+1` is `1<<(2+1)` = 8, and `1|2^3&4` is `1|(2^(3&4))`. (MACRO-11 and Turbo8 differ: there `+`, `-`,
+`*`, `/`, `&` and `!` are all one level, evaluated from left to right.)
 
 ```asm
 A = (B + C / 2) * 2 + 7 * 3        ; any mathematical expression
@@ -419,13 +419,24 @@ PDPy11 has text macros (in the style of MACRO-11), conditional assembly and repe
 source is read. The full description (in Russian) is in [MACROS.md](MACROS.md); here is a summary.
 
 ```asm
-        .macro  Clear2  reg, value=0        ; parameters, with an optional default value
-                mov     #value, reg
-                mov     #value, reg
-        .endm
+; Psw is 340 (interrupts disabled) unless given
+	.macro	SetVec	Vec,Handler,Psw=340
+		MOV	#Handler,@#Vec
+		MOV	#Psw,@#Vec+2
+	.endm
 
-        Clear2  r1                          ; expands in place
-        Clear2  r2, 5
+; ?Loop is a unique label for each call
+	.macro	Delay	Count=1000,?Loop
+		PUSH	R0
+		MOV	#Count,R0
+Loop:		SOB	R0,Loop
+		POP	R0
+	.endm
+
+		SetVec	60,KeyIrq
+		SetVec	100,Timer,200
+		Delay				; 1000 iterations
+		Delay	200
 ```
 
 * `.macro name p1, p2=default, ?label` … `.endm`; `.mexit` leaves the expansion early. A parameter written `?name`

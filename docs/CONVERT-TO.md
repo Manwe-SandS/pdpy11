@@ -34,7 +34,7 @@ Every change that is not completely obvious is shown in the result:
 
 * a changed line is preceded by a comment with the original text: `; was: <original line>`
   (`// was: …` in the Turbo8 dialect);
-* every macro call stays as a comment line (`; Clear2 r2, 5`) followed by its expansion;
+* every macro call stays as a comment line (`; SetVec	60,KeyIrq`) followed by its expansion;
 * removed definitions (register synonyms, redefined constants, unsupported directives) leave an explanatory comment;
 * warnings about things that need attention go to the standard error output.
 
@@ -50,17 +50,21 @@ macros is dropped from the result (a file with real code stays included). `.mcal
 macros `.addr` and `.print` are expanded in the PDPy11 dialect and left alone in the Turbo8 one.
 
 ```asm
-        .macro  Clear2  reg, val=0
-        mov     #val, reg
-        mov     #val, reg
-        .endm
-        Clear2  r2, 5
+	.macro	SetVec	Vec,Handler,Psw=340
+		MOV	#Handler,@#Vec
+		MOV	#Psw,@#Vec+2
+	.endm
+		SetVec	60,KeyIrq
+		SetVec	100,Timer,200
 ```
 becomes
 ```asm
-; Clear2        r2, 5
-        mov     #5, r2
-        mov     #5, r2
+; SetVec	60,KeyIrq
+		MOV	#KeyIrq,@#60
+		MOV	#340,@#60+2
+; SetVec	100,Timer,200
+		MOV	#Timer,@#100
+		MOV	#200,@#100+2
 ```
 
 Macro semantics (parameters, `?label` automatic labels, `<…>` arguments, the apostrophe, `.mexit`, nesting) are those
