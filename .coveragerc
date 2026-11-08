@@ -1,5 +1,0 @@
-[run]
-branch = True
-source = .
-omit = tests/old_pdpy11/*,
-       mutation.py
