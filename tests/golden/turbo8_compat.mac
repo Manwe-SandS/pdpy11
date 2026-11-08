@@ -1,0 +1,15 @@
+; hidden Turbo8 compatibility: // and /* */ comments, .la, .insert, %n = name register synonyms
+.la 2000          // load address
+%0 = AX           /* synonym */
+%1 = bx
+	mov #100000, AX
+	mov (BX)+, -(ax)  ; PDPy11 comment
+	jmp (aX)
+%1 = SRC
+%0 = DST
+	clr dst
+	mov @(src)+, 2(DST)
+	.insert "turbo8_compat.inc"
+	.even /* block comment */ .align 0
+	.align 4
+	.word 7 % 4, 6 / 2 // division and modulo are still operators

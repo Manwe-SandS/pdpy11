@@ -1,0 +1,6 @@
+.link 1000
+x = y
+y = x
+	movv r1, r2
+	.repeat 2 {
+	nop

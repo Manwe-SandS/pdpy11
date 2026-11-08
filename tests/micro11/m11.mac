@@ -1,0 +1,13 @@
+SYMBOL=%0
+	.link 1000
+	clr	SYMBOL
+	mov	#'AJ',r2
+	mtps	#'Y'
+TABLE:	.#MET1 .#MET2 .@MET3
+MET1:MET2:MET3:	nop
+	.B:14.B:12.#20040.A: PRIVET !
+	.B:1
+	.E
+	.E
+	.R:AT, I,MSA
+	.@MET1

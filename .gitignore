@@ -1,0 +1,9 @@
+/pdpy11
+/pdpy11.exe
+/convert-to
+/convert-to.exe
+/work/
+/build/
+/release/
+*.o
+.DS_Store

@@ -1,0 +1,21 @@
+.link 1000
+start:	mov #5, r0
+	mov (r1)+, -(r2)
+	add @#177716, @(r3)+
+	clr 10(r4)
+	br start
+	bne .+4
+	sob r0, start
+	jmp @start
+	emt 5
+	.word 1+2*3, start, ^C5, "AB, 'c
+	.byte 1, -1, 255
+	.even
+	.dword 70000
+	.blkb 3
+	.odd
+	.ascii "Hi" <33> /there/
+	.asciz "z"
+	.rad50 /ABC/
+	.align 4
+	.blkw 2

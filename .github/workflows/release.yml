@@ -1,0 +1,117 @@
+name: build and release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: linux-x64,       os: ubuntu-22.04,     kind: linux }
+          - { name: linux-arm64,     os: ubuntu-22.04-arm, kind: linux }
+          - { name: macos-universal, os: macos-latest,     kind: macos }
+          - { name: windows-x64,     os: ubuntu-22.04,     kind: mingw, cc: x86_64-w64-mingw32-gcc }
+          - { name: windows-x86,     os: ubuntu-22.04,     kind: mingw, cc: i686-w64-mingw32-gcc }
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install MinGW
+        if: matrix.kind == 'mingw'
+        run: sudo apt-get update && sudo apt-get install -y gcc-mingw-w64
+
+      - name: Build (Linux)
+        if: matrix.kind == 'linux'
+        run: |
+          mkdir -p out
+          CONV="tools/convert-to.c src/macro.c src/cond.c src/util.c src/text.c src/charset.c src/platform.c"
+          cc -O2 -std=c11 -DNDEBUG -static -o out/pdpy11 src/*.c -lm
+          cc -O2 -std=c11 -DNDEBUG -static -o out/convert-to $CONV -lm
+          strip out/pdpy11 out/convert-to
+          make test
+
+      - name: Build (macOS)
+        if: matrix.kind == 'macos'
+        run: |
+          mkdir -p out
+          CONV="tools/convert-to.c src/macro.c src/cond.c src/util.c src/text.c src/charset.c src/platform.c"
+          FLAGS="-O2 -std=c11 -DNDEBUG -arch arm64 -arch x86_64 -mmacos-version-min=10.13"
+          cc $FLAGS -o out/pdpy11 src/*.c -lm
+          cc $FLAGS -o out/convert-to $CONV -lm
+          strip -x out/pdpy11 out/convert-to
+          codesign --force -s - out/pdpy11
+          codesign --force -s - out/convert-to
+          make test
+
+      - name: Build (Windows, cross-compiled)
+        if: matrix.kind == 'mingw'
+        run: |
+          mkdir -p out
+          CONV="tools/convert-to.c src/macro.c src/cond.c src/util.c src/text.c src/charset.c src/platform.c"
+          ${{ matrix.cc }} -O2 -std=c11 -DNDEBUG -static -o out/pdpy11.exe src/*.c -lm -lwinmm -lshell32
+          ${{ matrix.cc }} -O2 -std=c11 -DNDEBUG -static -o out/convert-to.exe $CONV -lm -lshell32
+          ${{ matrix.cc }} --version | head -1
+          $(echo ${{ matrix.cc }} | sed 's/-gcc$/-strip/') out/*.exe
+
+      - name: Package
+        shell: bash
+        run: |
+          VER="${GITHUB_REF_NAME}"
+          [ "${GITHUB_REF_TYPE}" = "tag" ] || VER="dev"
+          DIR="pdpy11-${VER}-${{ matrix.name }}"
+          mkdir "$DIR"
+          cp out/* "$DIR"/
+          cp sublime/* INSTALL.md README.md LICENSE "$DIR"/
+          mkdir -p dist
+          if [ "${{ matrix.kind }}" = "linux" ]; then
+            tar czf "dist/$DIR.tar.gz" "$DIR"
+          else
+            zip -qr "dist/$DIR.zip" "$DIR"
+          fi
+          ls -l dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: dist/*
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Checksums
+        run: cd dist && sha256sum * > SHA256SUMS && cat SHA256SUMS
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > notes.md <<'NOTES'
+          PDPy11 2.0.4, C version: a drop-in replacement of the Python assembler (identical output for valid programs,
+          about 100 times faster).
+
+          Every archive contains the compiler, the Sublime Text files (syntax, colour scheme, build system) and
+          `INSTALL.md` with step-by-step installation instructions. Checksums are in `SHA256SUMS`.
+
+          | System | Archive |
+          |---|---|
+          | Windows 64-bit / 32-bit | `*-windows-x64.zip` / `*-windows-x86.zip` |
+          | macOS (Apple silicon and Intel) | `*-macos-universal.zip` |
+          | Linux x86-64 / ARM64 | `*-linux-x64.tar.gz` / `*-linux-arm64.tar.gz` |
+          NOTES
+          gh release create "$GITHUB_REF_NAME" dist/* --repo "$GITHUB_REPOSITORY" \
+            --title "PDPy11 C version ${GITHUB_REF_NAME#v}" --notes-file notes.md

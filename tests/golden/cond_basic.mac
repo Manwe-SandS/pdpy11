@@ -1,0 +1,56 @@
+; conditional assembly at macro-expansion time: .if/.iff/.endc, .iif, .ntype, .irp/.irpc/.rept, redefined constants
+.macro clr2 p, q
+.if b <q>
+	clr p
+.iff
+	mov p,q
+.endc
+.iif nb <q> .word 7
+.endm
+	clr2 r0
+	clr2 r1,r2
+.macro kind x
+.ntype ...v, x
+.if eq ...v-27
+	.word 1
+.iff
+.if eq ...v
+	.word 2
+.iff
+	.word 3
+.endc
+.endc
+.endm
+	kind #5
+	kind r3
+	kind @r3
+	kind 4(r1)
+X = 3.
+.if ne X-3
+	.word 100
+.iff
+	.word 200
+.endc
+.if ndf Y
+	.word 300
+.endc
+.irp r,<r1,r2>
+	inc r
+.endr
+.irpc c,<AB>
+	.word 'c
+.endr
+.rept 2
+	nop
+.endr
+.if df X!Q
+	.word 400
+.endc
+.macro twice
+...t = 1
+	.word ...t
+...t = 2
+	.word ...t
+.endm
+	twice
+	.word ^o<377>, ^d<10>

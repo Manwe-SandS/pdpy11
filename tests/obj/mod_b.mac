@@ -1,0 +1,7 @@
+Ext1:	.word 1
+Ext2:	nop
+Ext3 = 0
+Ext4:	nop
+	.even
+Ext5:	rts pc
+	.end

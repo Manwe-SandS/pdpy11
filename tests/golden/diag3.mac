@@ -1,0 +1,6 @@
+.link 1000
+	sob r0, 7
+	br nowhere
+	mov r9, r1
+	mov #400000, r1
+	.word 1/0

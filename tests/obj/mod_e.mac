@@ -1,0 +1,26 @@
+	.la 1000
+Here:	mov #X,r0
+	mov X,r0
+	mov X(r1),r0
+	mov @#X,r0
+	mov @X,r0
+	mov r0,X
+	jmp X
+	jmp @X
+	br X
+	beq X
+	.word X+2*3
+	.word X-.
+	.word X, Here
+	.byte X
+	.byte X+1,3
+	.even
+	mov #Here+X,r0
+	mov #1$,r0
+1$:	mov #X-Here,r0
+	emt X
+	trap X
+	.word Here+4
+	mov (r1)+,X
+	mov #<X>,r0
+	.end

@@ -1,0 +1,8 @@
+.link 1000
+	mov #1, r9
+	.word 1/0
+	.byte 300
+	br undefined_label
+	foo bar
+1:	nop
+1:	nop

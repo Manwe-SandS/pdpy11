@@ -1,0 +1,7 @@
+{
+    "selector": "source.mac",
+    "file_patterns": ["*.mac"],
+    "cmd": ["$packages/User/pdpy11", "--report-format=bare", "--implicit-bin", "--lst", "$file"],
+    "working_dir": "$file_path",
+    "file_regex": "^(.*?):(\\d+):(\\d+): (.+)$"
+}

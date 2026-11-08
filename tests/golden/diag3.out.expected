@@ -1,0 +1,5 @@
+<W>/diag3.mac:2:13: Error: Local label '7:' is not defined (a local label is visible only until the next ordinary label)
+<W>/diag3.mac:3:8: Error: Unknown symbol 'nowhere' is referenced here
+<W>/diag3.mac:4:9: Error: Unknown symbol 'r9' is referenced here (the registers are r0-r7, sp and pc)
+<W>/diag3.mac:5:10: Error: The value is too large: an immediate value 131072 does not fit in 16 bits
+<W>/diag3.mac:6:11: Error: Division by zero

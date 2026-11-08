@@ -1,0 +1,6 @@
+.link 1000
+	addf ac1, ac2
+	ldf (r1), ac3
+	stf ac0, @(r2)+
+	clrf ac4
+	mulf r1, ac2

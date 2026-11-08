@@ -1,0 +1,6 @@
+<W>/errors.mac:2:13: Error: Unknown symbol 'r9' is referenced here (the registers are r0-r7, sp and pc)
+<W>/errors.mac:3:11: Error: Division by zero
+<W>/errors.mac:5:8: Error: Unknown symbol 'undefined_label' is referenced here
+<W>/errors.mac:6:5: Error: 'foo' is an undefined instruction. Check the spelling, or define it before use (a symbol defined later cannot be used as an instruction).
+<W>/errors.mac:7:1: Error: A symbol with the same name has been already declared here
+<W>/errors.mac:8:1: Error: Duplicate local label '1:'

@@ -1,0 +1,16 @@
+	.la 1000
+Start:	mov #Msg,r1
+	mov Ext1,r2
+	jmp Ext2
+	br Loc
+	nop
+Loc:	call Sub
+	.word Ext3+2, Loc, 5
+	.byte Ext4
+	.even
+	rts pc
+Sub:	clr r0
+	br Ext5
+Msg:	.asciz "hi"
+	.even
+	.end

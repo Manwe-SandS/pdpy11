@@ -1,0 +1,4 @@
+	.link 1000
+	mov #1,r0
+	halt
+	play_wav "TEST"

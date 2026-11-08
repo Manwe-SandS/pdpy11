@@ -1,0 +1,9 @@
+.link 1000
+a:	nop
+1:	br 1
+	br 1
+	.word a+2
+b::	nop
+c = 7
+d == 9.
+	.word c, d, b

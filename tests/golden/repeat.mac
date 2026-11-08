@@ -1,0 +1,9 @@
+.link 500
+	.repeat 3 {
+	inc r0
+	.byte 7
+	.even
+	}
+a = 5
+b = a * 2
+	.word a, b, .

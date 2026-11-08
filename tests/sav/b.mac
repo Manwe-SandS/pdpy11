@@ -1,0 +1,4 @@
+	.link 1000
+Start:	mov #1,r0
+	halt
+	make_sav "b.sav", 5000

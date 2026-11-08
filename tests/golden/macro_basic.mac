@@ -1,0 +1,26 @@
+; user macros: arguments, defaults, brackets, concatenation, automatic labels, library via .include,
+; and the built-in .addr macro
+	.include "macro_basic.inc"
+.macro push2 a, b
+	mov a,-(sp)
+	mov b,-(sp)
+.endm
+.macro delay n=10, ?lp
+lp:	sob n,lp
+.endm
+.macro lbl x, y
+x'y:	.word 7
+.endm
+	push2 r0, r1
+	push2 <#1+2>, 2(r3)		; bracketed argument
+	mov #5,r2
+	delay r2
+	delay r2
+	clear2 r4
+	lbl a, 1
+	lbl a, 2
+	.word a1, a2
+	.addr r3, a2
+	.addr pc, Msg
+	rts pc
+Msg:	.asciz "hi"

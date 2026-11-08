@@ -1,0 +1,10 @@
+; Главный файл (UTF-8): проверка автоопределения кодировки включаемых файлов
+.link 1000
+        mov #1, r0
+        .include "enc_cp1251.inc"
+        .include "enc_cp866.inc"
+        .include "enc_koi8.inc"
+        .include "enc_utf16.inc"
+        .include "enc_utf8bom.inc"
+        .word 177777
+        make_bin

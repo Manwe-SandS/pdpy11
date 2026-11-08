@@ -1,0 +1,14 @@
+	.link 1000
+START:	MOV	#TEXT,R1	печать строки
+1$:	MOVB	(R1)+,R0
+	BEQ	2$
+	TOUT
+	BR	1$
+2$:	TYIN
+	.+4
+	RTS	PC
+TEXT:	.A: Hello !.B:0
+M:	NOP	первая
+	BR	M
+M:	NOP	вторая
+	BR	M

@@ -1,0 +1,9 @@
+.link 2000
+	mov #later, r0
+	br later
+	.blkb later-start2
+start2:	.word later, start2
+later:	nop
+	.even
+x = later - start2
+	.word x, x*2
