@@ -33,7 +33,7 @@ Every archive contains the compiler, the Sublime Text files (syntax, colour sche
 
 ```
 make                 # macOS / Linux / MinGW; or: cc -O2 -std=c11 -o pdpy11 src/*.c -lm
-make test            # the test suite; no Python needed
+make test            # the test suite
 ```
 
 Windows with MSVC: run `build.bat` from a Developer Command Prompt. Sound output on Windows needs `winmm`
