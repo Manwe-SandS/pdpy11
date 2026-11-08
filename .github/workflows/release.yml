@@ -70,6 +70,8 @@ jobs:
           mkdir "$DIR"
           cp out/* "$DIR"/
           cp sublime/* INSTALL.md README.md LICENSE "$DIR"/
+          mkdir "$DIR/docs"
+          cp docs/SYNTAX.md docs/CONVERT-TO.md docs/MACROS.md "$DIR/docs"/
           mkdir -p dist
           if [ "${{ matrix.kind }}" = "linux" ]; then
             tar czf "dist/$DIR.tar.gz" "$DIR"
@@ -104,8 +106,9 @@ jobs:
           PDPy11 2.0.4, C version: a drop-in replacement of the Python assembler (identical output for valid programs,
           about 100 times faster).
 
-          Every archive contains the compiler, the Sublime Text files (syntax, colour scheme, build system) and
-          `INSTALL.md` with step-by-step installation instructions. Checksums are in `SHA256SUMS`.
+          Every archive contains the compiler (`pdpy11`), the source converter (`convert-to`), the Sublime Text files
+          (syntax, colour scheme, build system), `INSTALL.md` with step-by-step installation instructions and the
+          documentation (`docs/`). Checksums are in `SHA256SUMS`.
 
           | System | Archive |
           |---|---|

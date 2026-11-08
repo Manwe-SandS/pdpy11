@@ -7,7 +7,8 @@ PDPy11 is a single executable: there is nothing to install besides copying files
 | File | Purpose |
 |---|---|
 | `pdpy11` (`pdpy11.exe` on Windows) | the assembler |
-| `convert-to` (`convert-to.exe`) | optional converter of sources written for other assemblers |
+| `convert-to` (`convert-to.exe`) | optional converter of sources written for other assemblers (see `docs/CONVERT-TO.md`) |
+| `docs/` | the language reference (`SYNTAX.md`), the converter guide (`CONVERT-TO.md`) and `MACROS.md` |
 | `PDPy11.sublime-syntax` | syntax highlighting for Sublime Text |
 | `PDPy11.sublime-color-scheme` | colour scheme |
 | `pdpy11.sublime-build` | build system (Ctrl+B / Command+B) |

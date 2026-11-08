@@ -26,8 +26,8 @@ Compiled binaries for every platform are published on the
 | Linux x86-64 | [pdpy11-v2.0.4-c1-linux-x64.tar.gz](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.0.4-c1/pdpy11-v2.0.4-c1-linux-x64.tar.gz) |
 | Linux ARM64 | [pdpy11-v2.0.4-c1-linux-arm64.tar.gz](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.0.4-c1/pdpy11-v2.0.4-c1-linux-arm64.tar.gz) |
 
-Every archive contains the compiler, the Sublime Text files (syntax, colour scheme, build system) and
-[INSTALL.md](INSTALL.md) with step-by-step installation instructions.
+Every archive contains the compiler, the source converter `convert-to`, the Sublime Text files (syntax, colour
+scheme, build system), [INSTALL.md](INSTALL.md) with step-by-step installation instructions and the documentation.
 
 ## Build from source
 
@@ -73,6 +73,8 @@ Sound is played by the system: PlaySound on Windows, `afplay` on macOS, `paplay`
 
 The language and the command line are described in [docs/SYNTAX.md](docs/SYNTAX.md).
 Text macros, conditional assembly and repeat blocks are described in detail in [docs/MACROS.md](docs/MACROS.md) (in Russian).
-The tool `tools/convert-to.c` (`make convert-to`) rewrites sources written for other assemblers in the PDPy11 style.
+The converter `convert-to` (included in every release archive, source in `tools/convert-to.c`) rewrites sources
+written for other assemblers in the PDPy11 style, expanding macros and conditional assembly: see
+[docs/CONVERT-TO.md](docs/CONVERT-TO.md).
 
 `tests/DIFFERENCES.md` lists the intentional differences from the Python version.
