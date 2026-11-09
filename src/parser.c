@@ -297,6 +297,31 @@ static Node *p_number(Ctx *c, const Term *term) {
         if (ch == '8' || ch == '9') has89 = true;
     }
     if (has_bad) { *c = st; return NULL; }
+    int radix = cond_radix();                          /* set by .radix: the base of the numbers without a prefix and a dot */
+    if (radix == 16 && !has_dot && !all_digit && nl > 0) {
+        bool hex = true;
+        for (size_t i = 0; i < nl; i++) if (!is_digit_(num[i]) && !(lc((unsigned char)num[i]) >= 'a' && lc((unsigned char)num[i]) <= 'f')) hex = false;
+        int64_t v;
+        if (hex && py_int(num, nl, 16, &v)) {
+            Node *n = mk(c, N_NUMBER, cs, c->pos);
+            n->u.num.repr = afmt("%s%s", sign_str, num);
+            n->u.num.value = v * sign;
+            return n;
+        }
+    }
+    if (all_digit && nl > 0 && !has_dot && radix != 8) {
+        int64_t v = 0;
+        bool ok = py_int(num, nl, radix, &v);
+        if (!ok) {
+            ERR1("invalid-number", c->src, cs, c->pos, "This number has a digit that is not valid in radix %d (set by .radix).\nAdd a dot after the number to make it decimal.", radix);
+            v = 0;
+        }
+        Node *n = mk(c, N_NUMBER, cs, c->pos);
+        n->u.num.repr = afmt("%s%s", sign_str, num);
+        n->u.num.value = v * sign;
+        n->u.num.valid_label = sign == 1;
+        return n;
+    }
     if (all_digit && nl > 0) {
         int64_t v;
         if (has_dot) {
@@ -407,6 +432,15 @@ static Node *p_label(Ctx *c) {
         is_extern = false;
         ERR1("invalid-extern", c->src, cs, c->pos, "A local label cannot be external. Either give it a global name or remove double colon.");
     }
+    {   /* "A:B:" with no space: it looks like a qualified name "A:B", so the labels must be separated */
+        size_t q = c->pos;
+        while (q < LEN(c) && (is_wordc((unsigned char)CODE(c)[q]) || CODE(c)[q] == '$' || CODE(c)[q] == '.')) q++;
+        if (q > c->pos && q < LEN(c) && CODE(c)[q] == ':') {
+            const char *nx = sub_(c, c->pos, q);
+            ERR1("label-chain", c->src, cs, q + 1,
+                 "Several labels in a row must be separated by whitespace: 'Name:Label' without spaces is a reference to the symbol Label of the file where Name is defined, not a label definition.\nWrite '%s:%s %s:' instead.", name, is_extern ? ":" : "", nx);
+        }
+    }
     Node *n = mk(c, N_LABEL, cs, c->pos);
     n->u.label.name = name;
     n->u.label.local = is_digit_((unsigned char)name[0]);
@@ -503,6 +537,27 @@ static Node *p_symbol_expression(Ctx *c, const Term *term) {
     const char *name = sub_(c, a, b);
     if (is_builtin_name(name, b - a) && !has_colon) {
         WARN1("suspicious-name", c->src, cs, c->pos, "This symbol suspiciously resembles an instruction, but is parsed as an operand.\nCheck for a missing newline or an excess comma before it.");
+    }
+    /* "Name:2" is the local label 2: of the scope that starts after the global label Name:; "Name:Init" is the symbol Init of the
+       file where Name is defined. The second part follows the colon at once; only one level is allowed. */
+    if (has_colon && !is_digit_((unsigned char)name[0]) && (is_wordc((unsigned char)ascii_at(c, 0)) || ascii_at(c, 0) == '$' || ascii_at(c, 0) == '.')) {
+        size_t p = c->pos;
+        bool local = is_digit_(ascii_at(c, 0));
+        while (p < LEN(c) && (is_wordc((unsigned char)CODE(c)[p]) || CODE(c)[p] == '$' || (!local && CODE(c)[p] == '.'))) p++;
+        const char *loc = sub_(c, c->pos, p);
+        size_t ll = p - c->pos;
+        (void)ll;
+        char *low = (char *)loc;                        /* the original case; it is lowered when looked up */
+        c->pos = p;
+        if (ascii_at(c, 0) == ':' && (is_wordc((unsigned char)ascii_at(c, 1)) || ascii_at(c, 1) == '$')) {
+            size_t q = c->pos + 1;
+            while (q < LEN(c) && (is_wordc((unsigned char)CODE(c)[q]) || CODE(c)[q] == '$')) q++;
+            ERR1("nested-qualifier", c->src, cs, q, "Only one level is allowed: 'Name:Label' or 'Name:N'. A reference like 'A:B:C' is not supported");
+            c->pos = q;
+        }
+        Node *n = mk_symbol(c, cs, c->pos, name, true);
+        n->u.sym.loc = low;
+        return n;
     }
     return mk_symbol(c, cs, c->pos, name, has_colon);
 }
@@ -1389,6 +1444,32 @@ static bool p_conditional(Ctx *c, PVec *insns) {
         return true;
     }
     if (!strcmp(w, ".mcall")) { c->pos = line_end(c, we); return true; }
+    if (!strcmp(w, ".radix")) {                       /* MACRO-11: the argument is always decimal; no argument means 8 */
+        size_t p = we;
+        while (p < L && (T[p] == ' ' || T[p] == '\t')) p++;
+        size_t as = p;
+        while (p < L && is_digit_((unsigned char)T[p])) p++;
+        size_t ae = p;
+        if (p < L && T[p] == '.') p++;                 /* "10." is accepted too */
+        int r = 8;
+        if (ae > as) {
+            long v = 0;
+            for (size_t k = as; k < ae && v < 1000; k++) v = v * 10 + (T[k] - '0');
+            r = (int)v;
+        } else if (p < L && T[p] != '\n' && T[p] != ';' && T[p] != '\r' && T[p] != '/') {
+            ERR1("invalid-radix", c->src, ws, p + 1, "'.radix' expects a number: 2, 8, 10 or 16");
+            c->pos = line_end(c, p);
+            return true;
+        }
+        if (r != 2 && r != 8 && r != 10 && r != 16) {
+            ERR1("invalid-radix", c->src, as, ae, "The radix must be 2, 8, 10 or 16 (the number is read as a decimal one)");
+            c->pos = ae > as ? p : line_end(c, p);
+            return true;
+        }
+        cond_set_radix(r);
+        c->pos = p;
+        return true;
+    }
     if (!strcmp(w, ".ntype")) {
         size_t p = we;
         while (p < L && (T[p] == ' ' || T[p] == '\t')) p++;

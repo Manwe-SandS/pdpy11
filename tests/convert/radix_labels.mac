@@ -1,0 +1,17 @@
+        .link 1000
+A:B:    nop
+        .radix 10
+        mov #100, r0
+        .word 12, 10., ^o17
+        .radix 16
+        .word 1F, 0FF
+        .radix
+        .word 17
+        .radix 10
+        .rept 2
+        .word 7
+        .endr
+        .radix 8
+        jmp Play:Init
+Play::  nop
+Init:   nop

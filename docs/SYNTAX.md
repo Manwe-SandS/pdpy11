@@ -97,6 +97,33 @@ msg:    .asciz  "Hello"
 A number written without a dot that contains the digits 8 or 9 is an error with the hint "add a dot to make it decimal".
 `0` followed by digits (`017`) is octal as well.
 
+#### Default radix: `.radix`
+
+`.radix n` changes the base of the numbers written **without** a prefix and without a trailing dot, for all the text
+below it (as in MACRO-11). `n` is 2, 8, 10 or 16 and is always read as a decimal number; `.radix` with no argument
+returns to 8. The default is 8, and it is reset to 8 at the start of every source file given on the command line
+(an `.include`d file continues with the current radix).
+
+```asm
+        .radix  10
+        mov     #100, r0        ; 100 decimal = 0144
+        .word   10, 10.         ; 12 and 12 (octal)
+        .radix  16
+        .word   1F, 0FF         ; digits a-f are allowed; a number starts with a digit (0FF, not FF)
+        .radix  8
+        .word   17.             ; the dot, ^D, ^O, ^X, ^B, 0x, 0b still work in any radix
+```
+
+- A number with a trailing dot is always decimal; numbers with a prefix (`^D`, `^O`, `^X`, `^B`, `0x`, `0o`, `0b`) keep
+  their own base.
+- In radix 16 a word made only of hex digits that starts with a digit (`0b1`, `0d9`) is a hexadecimal number, not a
+  `0b…`/`0d…` prefixed one. A word that starts with a letter (`FF`, `A1`) is still a symbol.
+- A digit not valid in the current radix (`2` in radix 2) is an error.
+- `.radix` acts while the text is read, like `.if` and macros: it does not take effect in a skipped `.if` branch, and
+  a macro or `.rept` body is read in the radix valid at the point where it is expanded. The numbers in `.if`
+  conditions follow the same radix.
+- Labels are not affected (a local label such as `1:` is still a label).
+
 ### Characters
 
 * `'A` is the code of a character: `mov #'A, r0` loads 101 (octal). There is no closing quote.
@@ -169,13 +196,81 @@ A circular definition (`x = x`, `a = b`, `b = a`) is reported as an error.
 ### Labels
 
 * A **global label** is a name followed by a colon: `Loop:`. Names consist of letters, digits, `_`, `$` and `.` and
-  may not start with a digit. Defining one twice is an error ("Duplicate symbol").
-* A **local label** is a number followed by a colon: `1:`. It is visible until the next ordinary (global) label, so
-  the same numbers can be reused in every routine; defining the same number twice inside one scope is the error
-  "Duplicate local label". `br 1` and `jmp (1:)` refer to the `1:` of the current scope, whether it is above or below
-  the instruction.
+  may not start with a digit (a name that starts with a digit is a local label). Defining one twice is an error ("Duplicate symbol").
+* A **local label** is a name that **starts with a digit**, followed by a colon: `1:`, `2x:`, `10_loop:`, `1abc$:`.
+  After the first digit the name may contain letters, digits, `_`, `$` and `.`, as in a global label. A local label is
+  visible until the next ordinary (global) label, so the same names can be reused in every routine; defining the same
+  name twice inside one scope is the error "Duplicate local label". `br 1` and `jmp (1:)` refer to the `1:` of the
+  current scope, whether it is above or below the instruction. A purely numeric name (`1`) has to be written with a
+  colon or in a branch target to be taken as a label (see [Local labels in arithmetic](#local-labels-in-arithmetic));
+  a name with letters (`1abc`) cannot be a number, so it can be written without a colon: `br 1abc`.
+* A local label of another scope is written `Name:N` (no spaces): the local label `N:` that follows the global label
+  `Name:`. A symbol of another file is written `Name:Label`: the label `Label` of the file where the label `Name` is
+  defined (see [Qualified names](#qualified-names-namen-and-namelabel)).
 * A label ending with two colons, `name::`, is **external**: it is visible in the other files of the program (see
-  [9](#9-files-linking-and-visibility)).
+  [9](#9-files-linking-and-visibility)). A local label cannot be external (`1::` is the error "A local label cannot be
+  external").
+
+### Qualified names: `Name:N` and `Name:Label`
+
+The scope of a local label starts after a global label and ends at the next global label. To refer to a local label
+`N:` of a scope from anywhere, write the global label that opens the scope, a colon and the number, with no spaces:
+`Name:N`.
+
+```asm
+Metka:  nop
+1:      nop
+2:      nop
+        jmp  Metka:2        ; back, the scope of Metka:
+Other:  nop
+1:      nop                 ; another label 1: (the scope of Other:)
+        jmp  @#Metka:2      ; the 2: of Metka:, though the current scope is Other:
+        jmp  Last:1         ; forward, to a scope that is defined below
+        .word Metka:1, Other:1, Metka:2 - Metka:1
+Last:   nop
+1:      nop
+```
+
+* It works wherever an expression is allowed: operands of instructions (`jmp Metka:2`, `br Metka:1`, `mov #Metka:2, r0`),
+  `.word`, parenthesised and arithmetic expressions; references forward and back both work.
+* `Name` must be a global label (or a global label shared with `::` or `.extern`, then the form works from other files
+  too: `Start::` in one file, `Start:2` in another). A name that is not a label, a private label of another file or a
+  missing `N:` after `Name:` is the error "Local label 'Name:N' is not defined".
+* The number must follow the colon at once: `Metka:2` is the reference, while `Metka: 2` is the label `Metka:`
+  followed by something else.
+* In `1: … br 1` and in `(1:)` the current scope is meant; `Name:N` is needed only for another scope.
+
+#### `Name:Label`: a symbol of another file
+
+If the second part is not a number, `Name:Label` means the symbol `Label` (a label or a constant) of **the file** where
+the label `Name` is defined. It is meant for the case when several files (libraries) are put into one program and have
+the same names inside, for example `Init`:
+
+```asm
+; main.mac
+        .include "play.mac"
+        .include "load.mac"
+        call    Play:Init       ; Init of play.mac
+        call    Load:Init       ; Init of load.mac
+
+; play.mac                      ; load.mac
+Play::  nop                     Load::  nop
+Init:   nop                     Init:   nop
+```
+
+Export (with `::` or `.extern`) only one label of each file, with a name that is unique in the program (`Play`,
+`Load`), and reach the others through it. The private labels `Init` do not clash with each other.
+
+* `Name` must be a label. `Label` is looked up among the symbols of the file where `Name` is defined, whether they are
+  shared or private; the whole file counts, not only the part below `Name`.
+* The names are case-insensitive, like all symbols. There are no spaces around the colon.
+* Only one level is allowed: `A:B:C` and `A:B:1` are an error ("Only one level is allowed").
+* The form works in the same file as well (`Play:Init` inside play.mac). A missing label gives "Symbol 'Name:Label'
+  is not defined".
+* `Name:Label` is only a **reference**; it never defines a label. Several labels in a row are written with whitespace
+  between them: `A: B: nop`. The form without spaces, `A:B: nop`, is the error `label-chain` ("Several labels in a row
+  must be separated by whitespace … Write 'A: B:' instead"), because it looks like a qualified name. `Loop:nop` (a
+  label immediately followed by an instruction) is still fine.
 
 ### Local labels in arithmetic
 
@@ -360,7 +455,11 @@ is a different symbol. `.extern` changes that:
 
 * `.extern name1, name2, …` makes these symbols shared with the other files;
 * `.extern all` shares every symbol of the file;
-* a label defined with `name::` is shared as well.
+* a label defined with `name::` is shared as well; so is a constant defined with `name == value`. Local labels cannot
+  be shared (`1::` is an error), but those that follow a shared label are available from other files as
+  `name:N`, and every other symbol of the file as `name:Label` (see
+  [Qualified names](#qualified-names-namen-and-namelabel)). So it is enough to share one uniquely named label in a
+  library file: the rest stays private and cannot clash with the symbols of other files.
 
 ```asm
 ; a.mac                            ; b.mac

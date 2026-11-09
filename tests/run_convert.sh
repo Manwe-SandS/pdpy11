@@ -19,5 +19,11 @@ if cmp -s "$tmp/cc.bin" tests/golden/cond_basic.bin.expected; then echo "convert
 cp tests/convert/micro11.mac "$tmp/mm.mac"
 ./convert-to --from=micro11 pdpy11 "$tmp/mm.mac" 2>/dev/null && cp "$tmp/mm.mac.pdpy11" "$tmp/mc.mac" && ./pdpy11 --implicit-bin "$tmp/mc.mac" >/dev/null 2>&1
 if cmp -s "$tmp/mc.bin" tests/convert/micro11.bin.expected; then echo "convert-to micro11: ok"; else echo "convert-to micro11: FAIL"; rc=1; fi
+# .radix, "A:B:" label chains and Name:Label references: PDPy11 output builds the expected bytes, Turbo8 output has the numbers rewritten
+cp tests/convert/radix_labels.mac "$tmp/rl.mac"
+./convert-to pdpy11 "$tmp/rl.mac" 2>/dev/null && cp "$tmp/rl.mac.pdpy11" "$tmp/rc.mac" && ./pdpy11 --implicit-bin "$tmp/rc.mac" >/dev/null 2>&1
+if cmp -s "$tmp/rc.bin" tests/convert/radix_labels.bin.expected; then echo "convert-to radix and labels: ok"; else echo "convert-to radix and labels: FAIL"; rc=1; fi
+./convert-to --from=pdpy11 turbo "$tmp/rl.mac" 2>"$tmp/rl.err"
+if grep -q 'mov #100., r0' "$tmp/rl.mac.turbo" && grep -q '\.word 0x1F, 0xFF' "$tmp/rl.mac.turbo" && grep -q '\.word 7\.' "$tmp/rl.mac.turbo" && grep -q "Name:Label" "$tmp/rl.err"; then echo "convert-to turbo radix: ok"; else echo "convert-to turbo radix: FAIL"; rc=1; fi
 rm -rf "$tmp"
 exit $rc

@@ -1,0 +1,14 @@
+.link 1000
+Metka:  nop
+1:      nop
+2:      nop
+        jmp Metka:2
+        br  Metka:1
+Other:  nop
+1:      nop
+        jmp @#Metka:2
+        jmp Last:1
+        .word Metka:1, Other:1, (Metka:2 - Metka:1), Last:1
+        mov #Metka:2, r0
+Last:   nop
+1:      nop

@@ -1,0 +1,6 @@
+.link 1000
+  .word Play:Init, Load:INIT, Play:Init + 2, load:init-play:init
+  jmp Load:Init
+  jmp Play:Init
+  .include "qualified_p.inc"
+  .include "qualified_l.inc"

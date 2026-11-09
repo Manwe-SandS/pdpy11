@@ -103,6 +103,9 @@ comment, and the references that follow use the value in force, written as a num
 | `.ascii`, `.asciz` | `<15><12>` byte values are kept (they are not arithmetic groups); text in other delimiters (`\text\`) is written in double quotes |
 | Names starting with `$` | `$mail` → `S$mail` (PDPy11 cannot start a line with such a name after a word list); every use is renamed |
 | `.list`, `.nlist`, `.asect` | removed (with a comment): they have no meaning for PDPy11 |
+| Labels in a row | `A:B: nop` → `A: B: nop`: PDPy11 requires whitespace between labels (`A:B` is a reference to a symbol, see [SYNTAX.md](SYNTAX.md#qualified-names-namen-and-namelabel)) |
+| `.radix` | kept: PDPy11 has `.radix` (2, 8, 10, 16; no argument = 8). The converter follows it too, so conditions and `.rept` counts are evaluated in the right radix |
+| `Name:Label`, `Name:N` | kept (PDPy11 syntax) |
 
 ```asm
 %1 = counter
@@ -127,6 +130,8 @@ comment, and the references that follow use the value in force, written as a num
 | `.end` | appended when the source has none (Turbo8 requires it) |
 | Directives Turbo8 does not have | `.once .repeat .dword .odd .error .list .title .extern` are left in place and reported on the standard error output, so that you can rewrite them by hand |
 | Operators | mixed operators are grouped with `< >`, see below |
+| `.radix n` | Turbo8 has no `.radix`: the line becomes a comment and the numbers below it that are written without a dot or a prefix are rewritten: radix 10 → `12.`, radix 16 → `0x1F`, radix 2 → `0b101`. Numbers with a dot, a prefix (`0x`, `^O` …) and names are left alone. `.radix` / `.radix 8` returns to octal |
+| `Name:Label`, `Name:N` | Turbo8 has no such references: the line is left as it is and reported on the standard error output |
 
 ## Operators
 

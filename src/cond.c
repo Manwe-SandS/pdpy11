@@ -38,6 +38,10 @@ void cond_forget(const char *name, size_t n) {
 
 /* ---- expressions ---- */
 
+static int g_radix = 8;
+int cond_radix(void) { return g_radix; }
+void cond_set_radix(int r) { g_radix = r; }
+
 typedef struct { const char *s; size_t n, i; const char *err; } Ev;
 
 static void ws(Ev *e) { while (e->i < e->n && is_blank_((unsigned char)e->s[e->i])) e->i++; }
@@ -100,14 +104,22 @@ static bool ev_atom(Ev *e, long *v) {
         if (!ev_digits(e, base, v)) return fail(e, "a number is expected after ^");
         return true;
     }
-    if (is_digit_c(c)) {                                      /* octal by default, decimal with a trailing point */
+    if (is_digit_c(c)) {                                      /* the current radix (8 by default), decimal with a trailing point */
         size_t a = e->i;
-        while (e->i < e->n && is_digit_c((unsigned char)e->s[e->i])) e->i++;
+        int rdx = g_radix;
+        while (e->i < e->n && (is_digit_c((unsigned char)e->s[e->i]) ||
+               (rdx == 16 && lower_((unsigned char)e->s[e->i]) >= 'a' && lower_((unsigned char)e->s[e->i]) <= 'f'))) e->i++;
         size_t b = e->i;
         bool dec = e->i < e->n && e->s[e->i] == '.';
         if (dec) e->i++;
+        int base = dec ? 10 : rdx;
         long r = 0;
-        for (size_t k = a; k < b; k++) r = r * (dec ? 10 : 8) + (e->s[k] - '0');
+        for (size_t k = a; k < b; k++) {
+            int ch = lower_((unsigned char)e->s[k]);
+            int d = ch <= '9' ? ch - '0' : ch - 'a' + 10;
+            if (d >= base) return fail(e, "this digit is not valid in the current radix");
+            r = r * base + d;
+        }
         *v = r;
         return true;
     }

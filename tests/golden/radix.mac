@@ -1,0 +1,21 @@
+.link 1000
+        .radix 10
+        .word 10, 17, 10.
+        mov #100, r0
+        .if eq 10-10.
+        .word 111
+        .endc
+        .radix 16
+        .word 1F, 0FF, 10., 10
+        .radix 2
+        .word 101, 11
+        .radix
+        .word 17
+        .radix 8
+        .radix 10
+        .macro M
+        .word 20
+        .endm
+        M
+        .radix 8
+        M

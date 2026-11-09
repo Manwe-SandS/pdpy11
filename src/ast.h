@@ -33,7 +33,7 @@ struct Node {
     Src *src;
     union {
         struct { const char *repr; int64_t value; bool valid_label, invalid_base8, reported; } num;
-        struct { const char *name; const char *lname; bool nec_label; } sym;
+        struct { const char *name; const char *lname; bool nec_label; const char *loc; } sym;   /* loc: "Name:2" = local label 2: after the global label Name:; "Name:Init" = symbol Init of the file where Name is defined */
         struct { Node *expr; const char *open, *close; } paren;
         struct { const OpDef *op; Node *lhs, *rhs; Value *cached; } op;   /* infix: lhs,rhs; unary: rhs = operand */
         struct { const char *repr; U32 str; bool evaluated; int64_t value; } chr;

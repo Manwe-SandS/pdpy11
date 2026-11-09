@@ -154,10 +154,20 @@ static Words find_word(const char *l, size_t n) {
     while (p < n && wc(l[p])) p++;
     if (p < n && l[p] == ':' && p > s) {
         p++;
+        if (p < n && l[p] == ':') p++;                     /* name:: (external) */
         w.lab_end = p;
         while (p < n && blank(l[p])) p++;
         s = p;
         while (p < n && wc(l[p])) p++;
+        /* more labels in a row: "A: B: nop" (and "A:B: nop", which PDPy11 wants written with a space) */
+        while (p < n && l[p] == ':' && p > s && l[s] != '.' && wc(l[s])) {
+            p++;
+            if (p < n && l[p] == ':') p++;
+            w.lab_end = p;
+            while (p < n && blank(l[p])) p++;
+            s = p;
+            while (p < n && wc(l[p])) p++;
+        }
     }
     w.ws = s; w.we = p;
     return w;
@@ -472,17 +482,93 @@ static void fix_dollar(const char *t, size_t n, Buf *o) {
     }
 }
 
+static void fix_radix(const char *t, size_t n, Buf *o);
 static void fix_run(const char *t, size_t n, Buf *o0) {
     Buf dl = {0};
     Buf *o = o0;
     if (g_mode == M_PDPY11) { o = &dl; }
-    Buf a = {0}, b = {0};
+    Buf a = {0}, b = {0}, rx = {0};
+    if (g_mode == M_TURBO && cond_radix() != 8) { fix_radix(t, n, &rx); t = rx.p ? rx.p : ""; n = rx.len; }
     if (g_nredef) fix_redef(t, n, &b); else buf_putn(&b, t, n);
     if (g_mode == M_PDPY11 && g_nsyn) fix_synonyms(b.p, b.len, &a); else buf_putn(&a, b.p, b.len);
     buf_free(&b);
     if (g_mode == M_PDPY11 || g_src_turbo != (g_mode == M_TURBO)) fix_precedence(a.p, a.len, o); else buf_putn(o, a.p, a.len);
-    buf_free(&a);
+    buf_free(&a); buf_free(&rx);
     if (o == &dl) { fix_dollar(dl.p ? dl.p : "", dl.len, o0); buf_free(&dl); }
+}
+
+/* PDPy11 wants whitespace between labels written in a row: "A:B: nop" -> "A: B: nop" ("A:B" is a reference to a symbol).
+   Returns the number of bytes added. Only the label part at the beginning of the line is looked at. */
+static size_t split_label_chain(const char *l, size_t n, Buf *o) {
+    size_t p = 0, added = 0;
+    while (p < n && blank(l[p])) p++;
+    buf_putn(o, l, p);
+    for (;;) {
+        size_t s = p;
+        while (p < n && wc(l[p])) p++;
+        if (p == s || p >= n || l[p] != ':' || l[s] == '.') break;
+        p++;
+        if (p < n && l[p] == ':') p++;
+        buf_putn(o, l + s, p - s);
+        size_t q = p;                                        /* a label right after the colon? */
+        while (q < n && wc(l[q])) q++;
+        if (q > p && q < n && l[q] == ':' && l[p] != '.') { buf_putc(o, ' '); added++; }
+        else break;
+    }
+    buf_putn(o, l + p, n - p);
+    return added;
+}
+
+/* Turbo8 has no .radix: the numbers written without a prefix and a dot are rewritten for the current radix
+   (10 -> "12.", 16 -> "0x1F", 2 -> "0b101"). Applies to the code part of a line after the first word. */
+static void fix_radix(const char *t, size_t n, Buf *o) {
+    int r = cond_radix();
+    if (r == 8) { buf_putn(o, t, n); return; }
+    size_t i = 0;
+    while (i < n) {
+        char c = t[i];
+        if (c == '^' && i + 1 < n && ((t[i + 1] >= 'a' && t[i + 1] <= 'z') || (t[i + 1] >= 'A' && t[i + 1] <= 'Z'))) {
+            size_t j = i + 2;                                /* ^D12, ^O17, ^X1F, ^BI01: a number with its own radix */
+            while (j < n && wc(t[j]) && t[j] != '.') j++;
+            buf_putn(o, t + i, j - i); i = j; continue;
+        }
+        if (c >= '0' && c <= '9' && (i == 0 || !wc(t[i - 1]))) {
+            size_t j = i;
+            while (j < n && wc(t[j]) && t[j] != '.') j++;
+            bool dot = j < n && t[j] == '.';
+            bool label = (j < n && t[j] == ':') || (j > i && t[j - 1] == '$');
+            bool prefixed = j - i > 2 && t[i] == '0' && strchr("xXoObBdD", t[i + 1]);
+            long v = 0; bool ok = true;
+            for (size_t k = i; k < j; k++) {
+                int ch = t[k] | 32, d = ch <= '9' ? ch - '0' : ch >= 'a' && ch <= 'f' ? ch - 'a' + 10 : 99;
+                if (d >= r) { ok = false; break; }
+                v = v * r + d;
+            }
+            if (dot || label || (prefixed && r != 16) || !ok) { buf_putn(o, t + i, j - i); if (dot) { buf_putc(o, '.'); j++; } }
+            else if (r == 10) buf_printf(o, "%ld.", v);
+            else if (r == 16) buf_printf(o, "0x%lX", v);
+            else { buf_puts(o, "0b"); buf_putn(o, t + i, j - i); }
+            i = j; continue;
+        }
+        if (wc(c)) {                                         /* a name: its digits are not numbers */
+            size_t j = i;
+            while (j < n && wc(t[j]) && t[j] != '.') j++;
+            if (j == i) j++;
+            buf_putn(o, t + i, j - i); i = j; continue;
+        }
+        buf_putc(o, c); i++;
+    }
+}
+
+/* Turbo8 has no "Name:Label" / "Name:N" references of PDPy11 */
+static void warn_qualified(const char *path, int lineno, const char *l, size_t n, size_t from) {
+    for (size_t i = from; i + 1 < n; i++) {
+        if (l[i] == ';' || l[i] == '"' || l[i] == '\'' || (l[i] == '/' && l[i + 1] == '/')) return;
+        if (l[i] == ':' && i > 0 && wc(l[i - 1]) && !(l[i - 1] >= '0' && l[i - 1] <= '9' && (i < 2 || !wc(l[i - 2]))) && wc(l[i + 1])) {
+            fprintf(stderr, "%s:%d: warning: Turbo8 has no 'Name:Label' / 'Name:N' references; rewrite this by hand\n", path, lineno);
+            return;
+        }
+    }
 }
 
 /* apply the fixes to the code parts of a line (strings and comments are copied unchanged) */
@@ -901,6 +987,23 @@ static void process(const char *text, size_t len, const char *path, int depth, B
                 goto next;
             }
             if (word_is(l, w, ".mcall")) goto next;
+            if (word_is(l, w, ".radix")) {                  /* MACRO-11 / PDPy11: the radix of the numbers below */
+                size_t a = w.we;
+                while (a < n && blank(l[a])) a++;
+                long rv = 8;
+                if (a < n && l[a] >= '0' && l[a] <= '9') { rv = 0; while (a < n && l[a] >= '0' && l[a] <= '9' && rv < 1000) rv = rv * 10 + (l[a++] - '0'); }
+                if (rv != 2 && rv != 8 && rv != 10 && rv != 16) { fprintf(stderr, "%s:%d: error: the radix must be 2, 8, 10 or 16\n", path, lineno); exit(1); }
+                cond_set_radix((int)rv);
+                if (g_mode == M_TURBO) {                    /* Turbo8 has no .radix: the numbers are rewritten instead */
+                    if (w.lab_end) { buf_putn(out, l, w.lab_end); buf_putc(out, '\n'); }
+                    size_t b = n;
+                    while (b > w.ws && blank(l[b - 1])) b--;
+                    buf_puts(out, "// ");
+                    buf_putn(out, l + w.ws, b - w.ws);
+                    buf_printf(out, ": Turbo8 has no .radix, the numbers below %s\n", rv == 8 ? "are octal again" : "are written with a dot or a prefix");
+                    goto next;
+                }
+            }
             if (g_mode == M_PDPY11 && !w.lab_end && (word_is(l, w, ".list") || word_is(l, w, ".nlist") || word_is(l, w, ".asect"))) {
                 size_t a = 0, b = n;                       /* listing control and the absolute section are of no use to PDPy11 */
                 while (a < b && blank(l[a])) a++;
@@ -1139,16 +1242,24 @@ static void process(const char *text, size_t len, const char *path, int depth, B
             if (wl && top && word_is(l, w, ".end")) g_saw_end = true;
             if (rep) { buf_putn(&line, l, w.ws); buf_puts(&line, rep); buf_putn(&line, l + w.we, n - w.we); }
             else buf_putn(&line, l, n);
+            size_t chain_added = 0;
+            if (g_mode == M_PDPY11 && !in_block && w.lab_end) {      /* "A:B: nop" -> "A: B: nop" */
+                Buf sp = {0};
+                chain_added = split_label_chain(line.p, line.len, &sp);
+                if (chain_added) { buf_free(&line); line = sp; }
+                else buf_free(&sp);
+            }
+            if (g_mode == M_TURBO && !in_block && wl) warn_qualified(path, lineno, l, n, w.we);
             bool ib0 = in_block;
             Buf fixed = {0};
             bool asc = g_mode == M_PDPY11 && !ib0 && wl && (word_is(l, w, ".ascii") || word_is(l, w, ".asciz"));
             if (asc) fix_ascii(line.p, line.len, w.we, &fixed);
-            else rewrite_code(line.p, line.len, ib0, (!ib0 && wl) ? w.we + (rep ? strlen(rep) - wl : 0) : 0, &fixed);
+            else rewrite_code(line.p, line.len, ib0, (!ib0 && wl) ? w.we + chain_added + (rep ? strlen(rep) - wl : 0) : 0, &fixed);
             /* the quoting of character constants is too obvious to be noted; anything else is */
             Buf plain = {0};
             g_chars = false;
             if (asc) buf_putn(&plain, fixed.p ? fixed.p : "", fixed.len);
-            else rewrite_code(line.p, line.len, ib0, (!ib0 && wl) ? w.we + (rep ? strlen(rep) - wl : 0) : 0, &plain);
+            else rewrite_code(line.p, line.len, ib0, (!ib0 && wl) ? w.we + chain_added + (rep ? strlen(rep) - wl : 0) : 0, &plain);
             g_chars = true;
             bool noteworthy = plain.len != n || memcmp(plain.p, l, n) != 0;
             buf_free(&plain);

@@ -45,7 +45,7 @@ static void put_u32(Buf *b, const U32 *s) { for (size_t i = 0; i < s->n; i++) bu
 void node_repr(const Node *n, Buf *b) {
     switch (n->kind) {
     case N_NUMBER: buf_puts(b, n->u.num.repr); break;
-    case N_SYMBOL: buf_puts(b, n->u.sym.name); if (n->u.sym.nec_label) buf_putc(b, ':'); break;
+    case N_SYMBOL: buf_puts(b, n->u.sym.name); if (n->u.sym.nec_label) buf_putc(b, ':'); if (n->u.sym.loc) buf_puts(b, n->u.sym.loc); break;
     case N_IPTR: buf_putc(b, '.'); break;
     case N_PAREN: buf_puts(b, n->u.paren.open); node_repr(n->u.paren.expr, b); buf_puts(b, n->u.paren.close); break;
     case N_INFIX: node_repr(n->u.op.lhs, b); buf_putc(b, ' '); buf_puts(b, n->u.op.op->ch); buf_putc(b, ' '); node_repr(n->u.op.rhs, b); break;

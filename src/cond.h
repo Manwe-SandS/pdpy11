@@ -11,6 +11,10 @@ bool cond_get(const char *name, size_t n, long *v);          /* value of a known
 void cond_set(const char *name, size_t n, long v);
 void cond_forget(const char *name, size_t n);
 
+/* The radix of the numbers written without a prefix or a trailing point (.radix): 2, 8, 10 or 16; 8 by default */
+int cond_radix(void);
+void cond_set_radix(int r);
+
 /* evaluate an expression; false (and *err) if a symbol has no known value or the syntax is wrong */
 bool cond_eval(const char *s, size_t n, long *v, const char **err);
 

@@ -2,6 +2,7 @@
 #include "platform.h"
 #include <stdio.h>
 #include "comp.h"
+#include "cond.h"
 
 #define VERSION "2.0.4"
 
@@ -283,7 +284,7 @@ int main(int argc, char **argv) {
     if (setjmp(g_unrecoverable)) { fflush(stdout); return 1; }
 
     FileAst **asts = (FileAst **)xmalloc(sizeof(FileAst *) * srcs.n);
-    for (size_t i = 0; i < srcs.n; i++) { warn_source_encoding((Src *)srcs.a[i]); asts[i] = parse_file((Src *)srcs.a[i]); }
+    for (size_t i = 0; i < srcs.n; i++) { warn_source_encoding((Src *)srcs.a[i]); cond_set_radix(8); asts[i] = parse_file((Src *)srcs.a[i]); }
     int64_t base;
     g_cl_mode = cl_obj;
     compile_and_link(asts, srcs.n, &base);

@@ -100,11 +100,33 @@ Sym *sym_lookup_symbol(Node *n, State *st, bool report_missing) {
         ERR1("unexpected-register", n->src, n->s, n->e, "A register cannot be used here. An integer or a symbol are expected");
         recoverable_error();
     }
-    Sym *s = find_prefixed(st->local_prefix, strlen(st->local_prefix), ln, nl);
+    Sym *s = n->u.sym.loc ? NULL : find_prefixed(st->local_prefix, strlen(st->local_prefix), ln, nl);
     if (!s) s = find_prefixed(st->fs->internal_prefix, st->fs->internal_prefix_len, ln, nl);
     if (!s) {
         ExtEnt *e = (ExtEnt *)smap_get(&G.externs, ln, nl);
         if (e) s = (Sym *)smap_get(&G.symbols, e->key, strlen(e->key));
+    }
+    if (n->u.sym.loc) {                                 /* "Name:2": the local label inside the scope that follows Name: */
+        char lcbuf[256];
+        size_t lcl = strlen(n->u.sym.loc);
+        if (lcl >= sizeof lcbuf) lcl = sizeof lcbuf - 1;
+        lower_ascii_n(lcbuf, n->u.sym.loc, lcl); lcbuf[lcl] = 0;
+        const char *lc_ = lcbuf;
+        bool in_file = !(lc_[0] >= '0' && lc_[0] <= '9');          /* Name:Label (the whole file) or Name:N (the local scope) */
+        Sym *g = (s && s->is_label && (in_file ? s->file_prefix : s->scope_prefix)) ? s : NULL;
+        if (!g) s = NULL;
+        else if (in_file) s = find_prefixed(g->file_prefix, g->file_prefix_len, lc_, strlen(lc_));
+        else s = find_prefixed(g->scope_prefix, strlen(g->scope_prefix), lc_, strlen(lc_));
+        if (!s && report_missing && g_cl_undef_ok) { g_cl_undef++; return NULL; }
+        if (!s && report_missing) {
+            g_undef++;
+            if (IS_LAYOUT()) G.unresolved++;
+            else if (!in_file)
+                ERR1("undefined-symbol", n->src, n->s, n->e, "Local label '%s:%s' is not defined (it must be a local label right after the global label '%s:', before the next global label)", n->u.sym.name, n->u.sym.loc, n->u.sym.name);
+            else
+                ERR1("undefined-symbol", n->src, n->s, n->e, "Symbol '%s:%s' is not defined ('%s' must be a label, and '%s' a symbol of the file where it is defined)", n->u.sym.name, n->u.sym.loc, n->u.sym.name, n->u.sym.loc);
+        }
+        return s;
     }
     if (!s && report_missing && g_cl_undef_ok) { g_cl_undef++; return NULL; }     /* object mode: an external label */
     if (!s && report_missing) {

@@ -62,7 +62,7 @@ void declare_external(Node *loc, const char *name, State *st) {
     e->key = key;
 }
 
-static void compile_label(Node *label, int64_t addr, State *st) {
+static Sym *compile_label(Node *label, int64_t addr, State *st) {
     bool local = label->u.label.local;
     const char *prefix = local ? st->local_prefix : st->fs->internal_prefix;
     bool created;
@@ -71,15 +71,17 @@ static void compile_label(Node *label, int64_t addr, State *st) {
         rep2(PRI_ERROR, "duplicate-symbol", label->src, label->s, label->e,
              afmt("Duplicate %s '%s:'", local ? "local label" : "symbol", label->u.label.name),
              s->def->src, s->def->s, s->def->e, "A symbol with the same name has been already declared here");
-        return;
+        return NULL;
     }
     if (!created && (!s->is_label || s->addr != addr)) G.labels_changed = true;
     s->def = label; s->is_label = true; s->addr = addr; s->stamp = G.walk_id; s->lb = st->fs->lb;
+    s->file_prefix = st->fs->internal_prefix; s->file_prefix_len = st->fs->internal_prefix_len;
     if (label->u.label.is_extern) declare_external(label, label->u.label.name, st);
     if (!local) {
         pvec_push(&st->fs->internal_symbols, (void *)label->u.label.name);
         if (st->extern_all) declare_external(label, label->u.label.name, st);
     }
+    return s;
 }
 
 static void compile_assignment(Node *as, State *st) {
@@ -93,6 +95,7 @@ static void compile_assignment(Node *as, State *st) {
     }
     pvec_push(&st->fs->internal_symbols, (void *)name);
     s->def = as; s->is_label = false; s->stamp = G.walk_id;
+    s->file_prefix = st->fs->internal_prefix; s->file_prefix_len = st->fs->internal_prefix_len;
     if (!s->x) s->x = (AsgExt *)amalloc(sizeof(AsgExt));
     s->x->st = *st;
     if (as->u.assign.is_extern) declare_external(as, name, st);
@@ -234,8 +237,13 @@ int64_t walk_block(State *st0, Node *block, int64_t start, bool in_repeat) {
                     }
                     break;
                 }
-                compile_label(insn, addr, &st);
-                if (!insn->u.label.local) st.local_prefix = afmt(".local%d.", G.next_local++);
+                {
+                    Sym *ls = compile_label(insn, addr, &st);
+                    if (!insn->u.label.local) {
+                        st.local_prefix = afmt(".local%d.", G.next_local++);
+                        if (ls) ls->scope_prefix = st.local_prefix;      /* for references like "Name:2" */
+                    }
+                }
                 break;
             case N_ASSIGN:
                 if (insn->u.assign.target->kind == N_IPTR) {

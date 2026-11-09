@@ -50,6 +50,9 @@ typedef struct Sym {
     AsgExt *x;                 /* assignments only */
     uint32_t stamp;            /* walk id in which (re)defined */
     bool is_label;
+    const char *scope_prefix;  /* global label: the local-label prefix of the scope that starts after it */
+    const char *file_prefix;   /* the symbol prefix of the file where it is defined (for "Name:Label") */
+    size_t file_prefix_len;
 } Sym;
 
 typedef struct ExtEnt {

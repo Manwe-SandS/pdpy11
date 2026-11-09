@@ -4,7 +4,7 @@ SYMBOL=%0
 	mov	#'AJ',r2
 	mtps	#'Y'
 TABLE:	.#MET1 .#MET2 .@MET3
-MET1:MET2:MET3:	nop
+MET1: MET2: MET3:	nop
 	.B:14.B:12.#20040.A: PRIVET !
 	.B:1
 	.E
