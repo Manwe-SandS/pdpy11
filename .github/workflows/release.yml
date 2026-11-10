@@ -103,7 +103,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           cat > notes.md <<'NOTES'
-          PDPy11 2.0.4, C version: a drop-in replacement of the Python assembler (identical output for valid programs,
+          PDPy11 2.1.0, C version: a drop-in replacement of the Python assembler (PDPy11 2.0.4) (identical output for valid programs,
           about 100 times faster).
 
           Every archive contains the compiler (`pdpy11`), the source converter (`convert-to`), the Sublime Text files

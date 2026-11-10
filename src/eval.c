@@ -19,7 +19,7 @@ void recoverable_error(void) {
 
 PD_NORETURN void internal_error(const char *msg) {
     fflush(stdout);
-    fprintf(stderr, "An unexpected internal compiler error happened.\nPlease report this to https://github.com/pdpy11/pdpy11/issues.\nThe following information will be of interest to the maintainer\n(hopefully along with some samples for reproduction):\n\n---\n\nVersion: pdpy11 2.0.4 (C)\n\n%s\n", msg);
+    fprintf(stderr, "An unexpected internal compiler error happened.\nPlease report this to https://github.com/pdpy11/pdpy11/issues.\nThe following information will be of interest to the maintainer\n(hopefully along with some samples for reproduction):\n\n---\n\nVersion: pdpy11 2.1.0 (C)\n\n%s\n", msg);
     exit(1);
 }
 
