@@ -4,7 +4,7 @@
 #include "comp.h"
 #include "cond.h"
 
-#define VERSION "2.1.0"
+#define VERSION "2.1.1"
 
 static const char *USAGE =
     "usage: pdpy11 [-h] [-o outfile] [--implicit-bin] [--bin|--raw|--sav|--wav|--turbo-wav]\n              [--link N] [--play|--play-turbo] [--lst] [--charset encoding]\n"

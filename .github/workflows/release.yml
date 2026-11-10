@@ -69,9 +69,10 @@ jobs:
           DIR="pdpy11-${VER}-${{ matrix.name }}"
           mkdir "$DIR"
           cp out/* "$DIR"/
-          cp sublime/* INSTALL.md README.md LICENSE "$DIR"/
+          cp sublime/* INSTALL.md README.md README-RU.md LICENSE "$DIR"/
           mkdir "$DIR/docs"
           cp docs/SYNTAX.md docs/CONVERT-TO.md docs/MACROS.md "$DIR/docs"/
+          cp docs/SYNTAX-RU.md docs/CONVERT-TO-RU.md docs/MACROS-RU.md docs/INSTALL-SUBLIME-RU.md "$DIR/docs"/
           mkdir -p dist
           if [ "${{ matrix.kind }}" = "linux" ]; then
             tar czf "dist/$DIR.tar.gz" "$DIR"
@@ -103,7 +104,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           cat > notes.md <<'NOTES'
-          PDPy11 2.1.0, C version: a drop-in replacement of the Python assembler (PDPy11 2.0.4) (identical output for valid programs,
+          PDPy11 2.1.1, C version: a drop-in replacement of the Python assembler (PDPy11 2.0.4) (identical output for valid programs,
           about 100 times faster).
 
           Every archive contains the compiler (`pdpy11`), the source converter (`convert-to`), the Sublime Text files

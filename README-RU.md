@@ -22,11 +22,11 @@
 
 | Платформа | Скачать |
 |---|---|
-| Windows 64 бита | [pdpy11-v2.1.0-windows-x64.zip](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.1.0/pdpy11-v2.1.0-windows-x64.zip) |
-| Windows 32 бита | [pdpy11-v2.1.0-windows-x86.zip](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.1.0/pdpy11-v2.1.0-windows-x86.zip) |
-| macOS (Apple silicon и Intel) | [pdpy11-v2.1.0-macos-universal.zip](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.1.0/pdpy11-v2.1.0-macos-universal.zip) |
-| Linux x86-64 | [pdpy11-v2.1.0-linux-x64.tar.gz](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.1.0/pdpy11-v2.1.0-linux-x64.tar.gz) |
-| Linux ARM64 | [pdpy11-v2.1.0-linux-arm64.tar.gz](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.1.0/pdpy11-v2.1.0-linux-arm64.tar.gz) |
+| Windows 64 бита | [pdpy11-v2.1.1-windows-x64.zip](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.1.1/pdpy11-v2.1.1-windows-x64.zip) |
+| Windows 32 бита | [pdpy11-v2.1.1-windows-x86.zip](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.1.1/pdpy11-v2.1.1-windows-x86.zip) |
+| macOS (Apple silicon и Intel) | [pdpy11-v2.1.1-macos-universal.zip](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.1.1/pdpy11-v2.1.1-macos-universal.zip) |
+| Linux x86-64 | [pdpy11-v2.1.1-linux-x64.tar.gz](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.1.1/pdpy11-v2.1.1-linux-x64.tar.gz) |
+| Linux ARM64 | [pdpy11-v2.1.1-linux-arm64.tar.gz](https://github.com/Manwe-SandS/pdpy11/releases/download/v2.1.1/pdpy11-v2.1.1-linux-arm64.tar.gz) |
 
 В каждом архиве лежат компилятор, конвертер исходников `convert-to`, файлы для Sublime Text (подсветка синтаксиса,
 цветовая схема, система сборки), [INSTALL.md](INSTALL.md) с пошаговой инструкцией по установке (по-русски:

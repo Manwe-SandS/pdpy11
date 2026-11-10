@@ -29,7 +29,7 @@ and the compiler must never crash or hang. Python's crashes (internal errors, ha
 | # | Area | Difference |
 |---|------|------------|
 | 1 | Order of diagnostics | C reports in program order; Python resolves forward references lazily. The test harness compares diagnostics as sorted sets. |
-| 2 | `--version` / internal error banner | `pdpy11 2.1.0 running on C`; `Version: pdpy11 2.1.0 (C)`, no Python traceback. |
+| 2 | `--version` / internal error banner | `pdpy11 2.1.1 running on C`; `Version: pdpy11 2.1.1 (C)`, no Python traceback. |
 | 3a | WAV amplitude | By the owner's request the C port writes WAV samples **16 (low) and 240 (high/middle)** instead of Python's 48 / 200 / 208 (`H`=`S`=240, `L`=16). Timing, headers and checksums are unchanged; `.wav` files therefore differ from Python's, `.bin`/`.raw` are not affected. |
 | 3 | Sound | `~speaker` output is not implemented (a note is printed). WAV *files* (`make_wav`, `make_turbo_wav`) are written and are byte-identical to Python's. |
 | 4 | Integers | Python integers are unbounded; C uses saturating `int64` (visible only beyond 2^63). |
