@@ -27,10 +27,6 @@ const OpDef OPS[OP__COUNT] = {
 };
 const int OP_NUM = OP__COUNT;
 const OpDef *op_def(OpId id) { return &OPS[id]; }
-const OpDef *op_find(int kind, const char *ch) {
-    for (int i = 0; i < OP__COUNT; i++) if (OPS[i].kind == kind && strcmp(OPS[i].ch, ch) == 0) return &OPS[i];
-    return NULL;
-}
 
 Node *node_new(NodeKind k, Src *src, size_t s, size_t e) {
     Node *n = (Node *)amalloc(sizeof(Node));

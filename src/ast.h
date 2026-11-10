@@ -49,7 +49,6 @@ struct Node {
 };
 
 Node *node_new(NodeKind k, Src *src, size_t s, size_t e);
-const OpDef *op_find(int kind, const char *ch);   /* exact (lowercase) */
 const OpDef *op_def(OpId id);
 extern const OpDef OPS[];
 extern const int OP_NUM;

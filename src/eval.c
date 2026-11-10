@@ -74,13 +74,6 @@ static int64_t need_int(const Value *v, const char *what) {
 }
 
 /* ---------------- symbols ---------------- */
-Sym *sym_find_key(const char *key, size_t kl) {
-    char stack[320];
-    char *lo = kl < sizeof stack ? stack : (char *)amalloc(kl + 1);
-    lower_ascii_n(lo, key, kl);
-    return (Sym *)smap_get(&G.symbols, lo, kl);
-}
-
 static Sym *find_prefixed(const char *prefix, size_t pl, const char *lname, size_t nl) {
     char stack[320];
     size_t kl = pl + nl;

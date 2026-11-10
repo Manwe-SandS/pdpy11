@@ -49,9 +49,6 @@ char *astrndup(const char *s, size_t n) {
     return p;
 }
 char *astrdup(const char *s) { return astrndup(s, strlen(s)); }
-void arena_free_all(void) {
-    while (g_blocks) { Block *n = g_blocks->next; free(g_blocks); g_blocks = n; }
-}
 
 /* ---- Buf ---- */
 void buf_reserve(Buf *b, size_t extra) {

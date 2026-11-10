@@ -1,6 +1,5 @@
 #include "builtins.h"
 
-#define I(n) {OT_INT, 0, false, n}
 static const MetaDef METAS[] = {
     {".byte", M_BYTE, 1, {{OT_INT, 8, false, "byte operand"}}, 0, INT_MAX, false, false, false, -1},
     {".word", M_WORD, 1, {{OT_INT, 16, false, "word operand"}}, 0, INT_MAX, false, false, false, -1},

@@ -193,7 +193,8 @@ static bool decode_source(const unsigned char *d, size_t n, Buf *out, const char
             double sc = score_charset(d, n, C[k].id);
             if (sc > best) { best = sc; id = C[k].id; name = C[k].name; }
         }
-        /* require real Cyrillic evidence: at least one decoded Cyrillic letter per two high bytes in the best candidate */
+        /* require real Cyrillic evidence: at least one decoded Cyrillic letter
+           per two high bytes in the best candidate */
         if (!has_hi || !cyrillic_dominates(d, n, id)) { id = CS_LATIN1; name = "latin-1"; }   /* no Cyrillic evidence: every byte is defined */
         *detected = true;
     } else if (streq_ci(want, "cp1251") || streq_ci(want, "windows-1251")) { id = CS_CP1251; name = "cp1251"; }

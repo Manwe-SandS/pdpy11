@@ -98,7 +98,6 @@ extern bool g_hit_multi, g_track_on;
 void note_hit(struct LinkBase *lb);
 PD_NORETURN void internal_error(const char *msg);
 Sym *sym_lookup_symbol(Node *n, State *st, bool report_missing);   /* for locate_definition */
-Sym *sym_find_key(const char *key, size_t kl);
 Value eval_assignment(Sym *s);
 bool compile_and_link(FileAst **files, size_t nfiles, int64_t *base_out);
 char *abspath_of(const char *path);
@@ -137,7 +136,6 @@ void emit_zeros(size_t n);
 extern jmp_buf *g_stop;
 extern jmp_buf *g_item;
 extern int g_undef;          /* counts undefined-symbol hits: derived range errors are suppressed */
-const char *builtin_suggest(const char *name);
 extern bool g_fatal;
 void stop_iteration(void);
 char *resolve_relative_path(const char *rel, const char *base_file);

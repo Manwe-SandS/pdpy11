@@ -30,6 +30,7 @@ typedef struct Builtin {
 } Builtin;
 
 const Builtin *builtin_find(const char *name, size_t len);
+const char *builtin_suggest(const char *name);
 bool is_register_name(const char *s, size_t len);   /* r0..r7 sp pc, case-insens */
 int register_index(const char *s, size_t len);       /* -1 if not */
 void register_alias_add(const char *name, size_t len, int idx);   /* extra name for register idx */

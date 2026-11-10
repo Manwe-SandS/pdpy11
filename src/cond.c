@@ -166,7 +166,8 @@ bool cond_eval(const char *s, size_t n, long *v, const char **err) {
 
 /* ---- .if conditions ---- */
 
-/* one argument: <...> (brackets removed) or a bare word up to a blank/comma/comment; returns false at end of line */
+/* one argument: <...> (brackets removed) or a bare word up to a blank/comma/comment;
+   returns false at end of line */
 static bool take_arg(const char *t, size_t len, size_t *p, size_t *as, size_t *ae) {
     size_t i = *p;
     while (i < len && is_blank_((unsigned char)t[i])) i++;

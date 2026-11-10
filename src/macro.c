@@ -13,7 +13,8 @@ static bool is_wc(int c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z
 static bool is_alpha_(int c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_' || c == '$'; }
 static bool is_blank(int c) { return c == ' ' || c == '\t' || c == '\r' || c == '\f' || c == '\v'; }
 
-/* length of a comment starting at text[p] (semicolon or double slash to the end of the line, or a slash-star block), 0 if none */
+/* length of a comment starting at text[p] (semicolon or double slash to the end of the line,
+   or a slash-star block), 0 if none */
 static size_t comment_len(const char *t, size_t len, size_t p) {
     if (p >= len) return 0;
     if (t[p] == ';' || (t[p] == '/' && p + 1 < len && t[p + 1] == '/')) {
@@ -234,7 +235,7 @@ char *macro_expand(const Macro *m, const PVec *args, size_t *outlen) {
         if (!(c >= '0' && c <= '9') && wl < 96) {
             char lw[96];
             lower_ascii_n(lw, b + i, wl);
-            for (size_t k = 0; k < m->nd; k++) if (strlen(m->d[k].name) == wl && memcmp(m->d[k].name, lw, wl) == 0) { found = (long)k; break; }
+            for (size_t k = 0; k < m->nd; k++) if (memcmp(m->d[k].name, lw, wl) == 0 && m->d[k].name[wl] == 0) { found = (long)k; break; }
         }
         if (found < 0) { buf_putn(&out, b + i, wl); i = j; continue; }
         /* a dummy: "x'DUMMY" and "DUMMY'x" concatenate (the apostrophe is dropped) */

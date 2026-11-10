@@ -1,5 +1,6 @@
-/* Relocatable object mode (hidden Turbo8 compatibility): while the final walk emits the code, every word whose value
-   mentions a symbol is written as zero and described by a reference (postfix expression) for the linker. */
+/* Relocatable object mode (hidden Turbo8 compatibility): while the final walk emits the code,
+   every word whose value mentions a symbol is written as zero and described by a reference
+   (postfix expression) for the linker. */
 #include "comp.h"
 #include "objfile.h"
 

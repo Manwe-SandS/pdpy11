@@ -55,6 +55,13 @@ static size_t comment_at(const Ctx *c, size_t p, bool *open) {
     return 0;
 }
 
+/* True if the character at c->pos may directly follow an instruction's last operand:
+   whitespace, a comment start, or a closing brace of the enclosing { } block. */
+static bool is_insn_terminator(const Ctx *c, uint32_t cp) {
+    return py_isspace(cp) || cp == '}' || comment_at(c, c->pos, NULL);
+}
+
+
 static void skip_ws(Ctx *c) {
     while (c->pos < LEN(c)) {
         size_t adv;
@@ -448,8 +455,9 @@ static Node *p_label(Ctx *c) {
     return n;
 }
 
-/* A constant assigned again inside a macro expansion (MACRO-11 allows "x = 1 ... x = 2"): each new value gets its own
-   internal name, and the references that follow use it, so the value is the one in force at the point of use. */
+/* A constant assigned again inside a macro expansion (MACRO-11 allows "x = 1 ... x = 2"):
+   each new value gets its own internal name, and the references that follow use it,
+   so the value is the one in force at the point of use. */
 typedef struct { const char *name, *lname; } SymAlias;
 static SMap g_assigned, g_alias;
 static unsigned g_alias_ver;
@@ -538,8 +546,9 @@ static Node *p_symbol_expression(Ctx *c, const Term *term) {
     if (is_builtin_name(name, b - a) && !has_colon) {
         WARN1("suspicious-name", c->src, cs, c->pos, "This symbol suspiciously resembles an instruction, but is parsed as an operand.\nCheck for a missing newline or an excess comma before it.");
     }
-    /* "Name:2" is the local label 2: of the scope that starts after the global label Name:; "Name:Init" is the symbol Init of the
-       file where Name is defined. The second part follows the colon at once; only one level is allowed. */
+    /* "Name:2" is the local label 2: of the scope that starts after the global label Name:;
+       "Name:Init" is the symbol Init of the file where Name is defined.
+       The second part follows the colon at once; only one level is allowed. */
     if (has_colon && !is_digit_((unsigned char)name[0]) && (is_wordc((unsigned char)ascii_at(c, 0)) || ascii_at(c, 0) == '$' || ascii_at(c, 0) == '.')) {
         size_t p = c->pos;
         bool local = is_digit_(ascii_at(c, 0));
@@ -1135,7 +1144,7 @@ static Node *p_instruction(Ctx *c) {
         }
         if (c->pos < LEN(c)) {
             size_t adv; uint32_t cp = cp_at(c, &adv);
-            if (!py_isspace(cp) && !comment_at(c, c->pos, NULL)) {
+            if (!is_insn_terminator(c, cp)) {
                 ERR1("missing-whitespace", c->src, c->pos, c->pos, "Expected whitespace after instruction. Proceeding as if a new instruction is starting");
             }
         }
@@ -1179,7 +1188,7 @@ static Node *p_word_list(Ctx *c) {
     }
     if (c->pos < LEN(c)) {
         size_t adv; uint32_t cp = cp_at(c, &adv);
-        if (!py_isspace(cp) && !comment_at(c, c->pos, NULL)) {
+        if (!is_insn_terminator(c, cp)) {
             ERR1("missing-whitespace", c->src, c->pos, c->pos, "Expected whitespace after word list. Proceeding as if a new instruction is starting");
             goto done;
         }
@@ -1229,7 +1238,7 @@ static bool p_register_synonym(Ctx *c) {
     return true;
 }
 
-/* ---- macros: definition, call and early parsing of included files (so that macros defined there are known) ---- */
+/* ---- macros: definition, call and early parsing of included files ---- */
 extern char *u32_to_utf8(const U32 *s);
 extern char *resolve_relative_path(const char *rel, const char *base_file);
 static const char *g_real_path = "";                 /* path of the file being parsed (not a macro expansion) */
@@ -1301,7 +1310,8 @@ static bool p_macro_call(Ctx *c, PVec *insns) {
     return true;
 }
 
-/* ".include "file"": parse the file right away, so that macros it defines are available to the code that follows */
+/* ".include "file"": parse the file right away, so that macros it defines
+   are available to the code that follows */
 static void prescan_include(const Node *in) {
     if (in->kind != N_INSN || in->u.insn.name->kind != N_SYMBOL || in->u.insn.ops.n != 1) return;
     const char *nm = in->u.insn.name->u.sym.lname;
@@ -1329,7 +1339,8 @@ static void prescan_include(const Node *in) {
     *smap_slot(&g_parsed_inc, path, strlen(path), NULL) = f ? f : &g_inc_failed;
 }
 
-/* ---- conditional assembly (.if/.iff/.ift/.iftf/.endc, .iif), .ntype, .mcall, .irp/.irpc/.rept, empty .error ---- */
+/* ---- conditional assembly (.if/.iff/.ift/.iftf/.endc, .iif), .ntype, .mcall,
+        .irp/.irpc/.rept, empty .error ---- */
 
 typedef struct { bool cond; Src *src; size_t pos; } CondFrame;
 static CondFrame g_cframes[128];
@@ -1358,7 +1369,8 @@ static size_t line_end(const Ctx *c, size_t p) {
     return p;
 }
 
-/* from the end of the current line, find the next .iff/.ift/.iftf/.endc of this nesting level; the cursor is left at its line */
+/* from the end of the current line, find the next .iff/.ift/.iftf/.endc of this nesting level;
+   the cursor is left at its line */
 static void skip_branch(Ctx *c) {
     size_t p = line_end(c, c->pos);
     if (p < LEN(c)) p++;
@@ -1376,7 +1388,8 @@ static void skip_branch(Ctx *c) {
     c->pos = LEN(c);
 }
 
-/* text of the lines after the current one up to the matching .endr; *after is the position after the .endr line */
+/* text of the lines after the current one up to the matching .endr;
+   *after is the position after the .endr line */
 static bool take_repeat_body(Ctx *c, size_t *bs, size_t *be, size_t *after) {
     size_t p = line_end(c, c->pos);
     if (p < LEN(c)) p++;
@@ -1590,7 +1603,8 @@ static bool micro_start(const Ctx *c, size_t p) {
     return false;
 }
 
-/* expression of a pseudo-command: blanks, then a run of name/number characters, '+' and '-' up to a blank or the next pseudo-command */
+/* expression of a pseudo-command: blanks, then a run of name/number characters,
+   '+' and '-' up to a blank or the next pseudo-command */
 static size_t micro_expr(const Ctx *c, size_t p, size_t *start) {
     while (p < LEN(c) && (CODE(c)[p] == ' ' || CODE(c)[p] == '\t')) p++;
     *start = p;

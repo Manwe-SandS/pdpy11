@@ -1,0 +1,1 @@
+<W>/brace_stray.mac:1:19: Error: Unexpected '}': there is no matching '{' (code blocks are only used by directives like '.repeat N {')

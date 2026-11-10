@@ -18,7 +18,6 @@ char *astrndup(const char *s, size_t n); /* arena copy, NUL-terminated */
 char *astrdup(const char *s);
 void *xmalloc(size_t n);
 void *xrealloc(void *p, size_t n);
-void arena_free_all(void);
 PD_NORETURN void die_oom(void);
 
 /* ---- growable byte/string buffer ---- */
