@@ -1,7 +1,19 @@
 {
     "selector": "source.mac",
     "file_patterns": ["*.mac"],
+
+    // build and run in the emulator (Windows)
+    // "shell_cmd": "\"$packages/User/pdpy11\" --report-format=bare --implicit-bin --lst \"$file\" && \"C:/BK/BKBTL/BKBTL.exe\" \"${file_path}/${file_base_name}.bin\"",
+
+    // build and run in the emulator (macOS)
+    // "shell_cmd": "\"$packages/User/pdpy11\" --report-format=bare --implicit-bin --lst \"$file\" && cd \"$HOME/BK/bk2010\" && java -jar bk2010-0.8.jar -bk0010 -run -bin \"${file_path}/${file_base_name}.bin\"",
+
+    // build and run in the emulator (Linux)
+    // "shell_cmd": "\"$packages/User/pdpy11\" --report-format=bare --implicit-bin --lst \"$file\" && cd \"$HOME/BK/bk2010\" && java -jar bk2010-0.8.jar -bk0010 -run -bin \"${file_path}/${file_base_name}.bin\"",
+
+    // build only
     "cmd": ["$packages/User/pdpy11", "--report-format=bare", "--implicit-bin", "--lst", "$file"],
+
     "working_dir": "$file_path",
     "file_regex": "^(.*?):(\\d+):(\\d+): (.+)$"
 }

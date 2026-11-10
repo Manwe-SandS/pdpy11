@@ -1,5 +1,7 @@
 # convert-to: a source converter
 
+**English** · [Русский](CONVERT-TO-RU.md)
+
 `convert-to` rewrites an assembler source so that it can be compiled by PDPy11 (or by Turbo8). It is a separate
 program; it ships in every release archive next to `pdpy11` and can be built with `make convert-to`.
 

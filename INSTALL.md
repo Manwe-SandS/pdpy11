@@ -48,6 +48,14 @@ The file `SHA256SUMS` lists the checksums of all archives.
    **Ctrl+B**): the program is assembled, the `.bin` and `.lst` files appear next to the source, and errors are
    listed in the panel below; click an error to jump to its line.
 
+### Running the program in an emulator (optional)
+
+To start an emulator after a successful build, open `pdpy11.sublime-build` in the `User` folder and:
+
+* comment out the `"cmd"` line;
+* uncomment one of the `"shell_cmd"` lines for your system;
+* replace the emulator path in it with your own.
+
 ## Command line
 
 Put `pdpy11` in any folder that is on your `PATH` (for example `/usr/local/bin`), or call it by its full path:

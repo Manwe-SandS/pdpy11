@@ -1,39 +1,41 @@
-# Макросы
+# Macros
 
-Макрос — это именованный кусок исходного текста с параметрами. При вызове макроса компилятор подставляет
-фактические аргументы в текст макроса и разбирает получившийся текст на месте вызова. Модель взята из MACRO-11
-(PDP-11 MACRO-11 Language Reference Manual, глава 7), но упрощена.
+**English** · [Русский](MACROS-RU.md)
 
-## Определение
+A macro is a named piece of source text with parameters. When a macro is called, the compiler substitutes the actual
+arguments into the text of the macro and parses the resulting text in place of the call. The model is taken from
+MACRO-11 (PDP-11 MACRO-11 Language Reference Manual, chapter 7), but simplified.
+
+## Definition
 
 ```asm
-.macro Имя параметр1, параметр2=значение, ?метка
-		тело макроса
+.macro Name parameter1, parameter2=value, ?label
+		macro body
 .endm
 ```
 
-- `.macro` и `.endm` можно писать и без точки (`macro`, `endm`).
-- Имя макроса может начинаться с точки. Регистр букв не важен.
-- Параметры разделяются запятыми или пробелами.
-- `параметр=значение` — значение по умолчанию. Оно используется, если аргумент не передан или пустой.
-  Значение с запятыми заключается в `<…>`.
-- `?параметр` — автоматическая метка: если аргумент не передан, подставляется уникальная локальная метка
-  `30000$`, `30001$`, … (как в MACRO-11).
-- Определения вкладываются: внутренний `.macro` становится известен после первого вызова внешнего макроса.
-- Определить макрос можно только до его использования (разбор идёт сверху вниз).
-- Повторное определение с тем же именем заменяет прежнее. Макрос может переопределить имя инструкции или
-  директивы: макросы проверяются раньше встроенных имён.
+- `.macro` and `.endm` can also be written without the dot (`macro`, `endm`).
+- A macro name may start with a dot. Letter case does not matter.
+- Parameters are separated by commas or spaces.
+- `parameter=value` is a default value. It is used when the argument is not passed or is empty.
+  A value that contains commas is enclosed in `<…>`.
+- `?parameter` is an automatic label: if the argument is not passed, a unique local label
+  `30000$`, `30001$`, … is substituted (as in MACRO-11).
+- Definitions can be nested: an inner `.macro` becomes known after the first call of the outer macro.
+- A macro can only be defined before it is used (parsing goes from top to bottom).
+- Defining a macro again with the same name replaces the previous one. A macro can override the name of an
+  instruction or a directive: macros are checked before the built-in names.
 
-Пример: установка вектора прерывания и задержка с автоматической меткой.
+Example: setting an interrupt vector, and a delay with an automatic label.
 
 ```asm
-; PSW по умолчанию 340 (прерывания запрещены)
+; PSW is 340 by default (interrupts disabled)
 	.macro	SetVec	Vec,Handler,Psw=340
 		MOV	#Handler,@#Vec
 		MOV	#Psw,@#Vec+2
 	.endm
 
-; ?Loop: при каждом вызове подставляется своя уникальная метка
+; ?Loop: every call gets its own unique label
 	.macro	Delay	Count=1000,?Loop
 		PUSH	R0
 		MOV	#Count,R0
@@ -45,96 +47,99 @@ Loop:	SOB	R0,Loop
 		Delay	200
 ```
 
-## Вызов
+## Call
 
 ```asm
-[метка:]	Имя аргумент1, аргумент2, …
+[label:]	Name argument1, argument2, …
 ```
 
-- Аргументы разделяются запятыми. Запятая внутри круглых скобок или строки в двойных кавычках аргумент не делит.
-- Аргумент с запятыми заключается в угловые скобки: `Имя <mov r0,r1>, 5`. Скобки при подстановке снимаются.
-- Пропущенный аргумент: `Имя ,b` (первый пуст). Пустой аргумент заменяется значением по умолчанию.
-- Аргументов больше, чем параметров, — ошибка `macro-arguments`; лишние аргументы игнорируются.
-- Комментарий (`;`, `//`, `/* */`) в конце строки вызова в аргумент не входит.
+- Arguments are separated by commas. A comma inside parentheses or inside a string in double quotes does not split
+  the argument.
+- An argument that contains commas is enclosed in angle brackets: `Name <mov r0,r1>, 5`. The brackets are removed
+  during substitution.
+- A skipped argument: `Name ,b` (the first one is empty). An empty argument is replaced by the default value.
+- More arguments than parameters is the error `macro-arguments`; the extra arguments are ignored.
+- A comment (`;`, `//`, `/* */`) at the end of the call line is not part of the argument.
 
-## Подстановка
+## Substitution
 
-- Параметр заменяется целиком, как слово: в `mov a,b` при параметре `a` слово `ab` не меняется.
-- Подстановка идёт везде в теле, включая строки в кавычках, кроме комментариев.
-- Апостроф склеивает параметр с соседним текстом и сам исчезает: `x'y:` при `x=a`, `y=1` даёт `a1:`.
-  Апостроф исчезает только рядом с параметром, поэтому `#'A` остаётся символьной константой.
-- `.mexit` (или `mexit`) в начале строки тела обрывает раскрытие макроса.
+- A parameter is replaced as a whole word: in `mov a,b` with the parameter `a`, the word `ab` is not changed.
+- Substitution is done everywhere in the body, including strings in quotes, except in comments.
+- An apostrophe joins a parameter to the adjacent text and disappears itself: `x'y:` with `x=a`, `y=1` gives `a1:`.
+  The apostrophe disappears only next to a parameter, so `#'A` remains a character constant.
+- `.mexit` (or `mexit`) at the beginning of a body line stops the expansion of the macro.
 
-## Вложенность
+## Nesting
 
-Тело макроса может вызывать другие макросы (включая сам себя). Глубина вложенности раскрытий ограничена
-(64 уровня): при превышении — ошибка `macro-recursion`.
+The body of a macro can call other macros (including itself). The nesting depth of expansions is limited
+(64 levels): exceeding it is the error `macro-recursion`.
 
-## Подключение макросов из других файлов
+## Macros from other files
 
-Макросы из библиотеки подключаются обычным `.include`. Включаемый файл разбирается сразу, на месте строки
-`.include`, поэтому макросы из него можно вызывать в строках ниже:
+Macros from a library are made available with an ordinary `.include`. The included file is parsed at once, in place of
+the `.include` line, so the macros from it can be called in the lines below:
 
 ```asm
 	.include	"macros.mac"
 		SetVec	60,KeyIrq
 ```
 
-В файле-библиотеке полезен `.once`, чтобы повторное включение не переопределяло макросы. Если в
-библиотеке синтаксическая ошибка, она сообщается один раз.
+`.once` is useful in the library file, so that including it again does not redefine the macros. If the library has a
+syntax error, it is reported once.
 
-## Диагностика
+## Diagnostics
 
-Ошибка в раскрытом тексте указывает на расширенный текст, а в названии источника сказано, откуда макрос вызван:
-`file.mac [macro 'Имя' called at line 12]`.
+An error in expanded text points to the expanded text, and the name of the source says where the macro was called
+from: `file.mac [macro 'Name' called at line 12]`.
 
-| Код | Когда |
+| Code | When |
 |---|---|
-| `invalid-macro` | нет имени, неверный параметр, макрос не закрыт `.endm` |
-| `macro-arguments` | аргументов больше, чем параметров |
-| `macro-recursion` | глубина раскрытия больше 64 |
+| `invalid-macro` | no name, an invalid parameter, the macro is not closed with `.endm` |
+| `macro-arguments` | more arguments than parameters |
+| `macro-recursion` | the expansion depth is greater than 64 |
 
-## Условная сборка
+## Conditional assembly
 
-Условные директивы вычисляются при разборе текста (в том числе внутри раскрытий макросов):
+Conditional directives are evaluated while the text is parsed (including inside macro expansions):
 
 ```asm
-.if условие аргументы     ; блок выполняется, если условие истинно
-.iff                      ; блок для ложного условия
-.ift                      ; блок для истинного условия
-.iftf                     ; блок в обоих случаях
+.if condition arguments   ; the block is assembled if the condition is true
+.iff                      ; the block for a false condition
+.ift                      ; the block for a true condition
+.iftf                     ; the block in both cases
 .endc
-.iif условие аргументы, оператор     ; условие на одну строку
+.iif condition arguments, statement     ; a one-line condition
 ```
 
-| Условие | Истинно, если |
+| Condition | True if |
 |---|---|
-| `EQ` `NE` `GT` `LT` `GE` `LE` выражение (синонимы `Z`, `NZ`, `G`, `L`) | значение выражения равно / не равно / больше / меньше … нуля |
-| `B <текст>` / `NB <текст>` | текст пуст / не пуст |
-| `IDN <a>,<b>` / `DIF <a>,<b>` | тексты одинаковы / различаются (регистр букв не важен) |
-| `DF имя` / `NDF имя` | константа уже определена / не определена; можно `a&b` и `a!b` |
+| `EQ` `NE` `GT` `LT` `GE` `LE` expression (synonyms `Z`, `NZ`, `G`, `L`) | the value of the expression is equal to / not equal to / greater than / less than … zero |
+| `B <text>` / `NB <text>` | the text is empty / not empty |
+| `IDN <a>,<b>` / `DIF <a>,<b>` | the texts are identical / different (letter case does not matter) |
+| `DF name` / `NDF name` | the constant is already defined / not defined; `a&b` and `a!b` are allowed |
 
-- Аргументы пишутся в `<…>` или без скобок (до пробела или запятой). Между аргументами и оператором в `.iif`
-  запятая необязательна.
-- Выражения в условиях считаются по правилам MACRO-11: операции `+ - * / & !` одного уровня, слева направо;
-  числа восьмеричные, с точкой десятичные, есть `^O` `^D` `^B` `^X`, символьные константы, `<…>`.
-- `.ntype имя, операнд` записывает в константу `имя` код режима адресации операнда (регистр `Rn` = 0n,
-  `(Rn)` = 1n, `(Rn)+` = 2n, `-(Rn)` = 4n, `x(Rn)` = 6n, `#x` = 27, `@#x` = 37, `x` = 67; `@` добавляет 10).
-- `.irp имя,<a,b,c>`, `.irpc имя,<строка>` и `.rept N` повторяют блок до `.endr`.
-- `.radix n` (n = 2, 8, 10 или 16; без аргумента — 8) меняет систему счисления для чисел без префикса и без точки в
-  остальном тексте, как в MACRO-11; действует и на числа в условиях. Читается при разборе, поэтому в пропущенной ветке
-  `.if` не срабатывает, а тело макроса читается в той системе, которая действует в месте раскрытия. Подробнее — в
-  [SYNTAX.md](SYNTAX.md#numbers).
-- `.mcall` разбирается и ничего не делает (макросы подключаются через `.include`).
-- `.error ;текст` (без операнда) выдаёт ошибку `macro-error` с текстом комментария.
-- Внутри раскрытия макроса константе можно присвоить новое значение (`x = 1 … x = 2`): ссылки ниже используют
-  новое значение. Вне макроса повторное присваивание остаётся ошибкой.
-- Имена символов и макросов могут начинаться с точек (`...V1`, `.MACS`), запись `^O<377>` допустима.
+- Arguments are written in `<…>` or without brackets (up to a space or a comma). In `.iif`, the comma between the
+  arguments and the statement is optional.
+- Expressions in conditions are evaluated by the rules of MACRO-11: the operations `+ - * / & !` are on one level,
+  from left to right; numbers are octal, a trailing dot makes them decimal, and `^O` `^D` `^B` `^X`, character
+  constants and `<…>` are available.
+- `.ntype name, operand` stores the addressing mode code of the operand in the constant `name` (register `Rn` = 0n,
+  `(Rn)` = 1n, `(Rn)+` = 2n, `-(Rn)` = 4n, `x(Rn)` = 6n, `#x` = 27, `@#x` = 37, `x` = 67; `@` adds 10).
+- `.irp name,<a,b,c>`, `.irpc name,<string>` and `.rept N` repeat a block up to `.endr`.
+- `.radix n` (n = 2, 8, 10 or 16; no argument means 8) changes the base of the numbers without a prefix and without a
+  trailing dot in the rest of the text, as in MACRO-11; it applies to the numbers in conditions too. It is read while
+  the text is parsed, so it has no effect in a skipped `.if` branch, and the body of a macro is read in the radix in
+  force at the place of the expansion. See [SYNTAX.md](SYNTAX.md#numbers) for details.
+- `.mcall` is parsed and does nothing (macros are made available through `.include`).
+- `.error ;text` (with no operand) reports the error `macro-error` with the text of the comment.
+- Inside a macro expansion a constant can be assigned a new value (`x = 1 … x = 2`): the references below use the new
+  value. Outside a macro, assigning again remains an error.
+- Names of symbols and macros may start with dots (`...V1`, `.MACS`); the form `^O<377>` is allowed.
 
-## Ограничения
+## Limitations
 
-- Директив `.narg`, `.nchr`, `.enabl`/`.dsabl`, секций `.psect`/`.asect` нет.
-- Ключевых аргументов (`Имя параметр=значение`) и числовой подстановки `\x` нет.
-- Макрос нельзя вызывать до его определения.
-- Условия проверяются во время раскрытия текста, а не при компиляции: значения известны только у констант
-  (`имя = выражение`), уже встретившихся выше. Метки в условиях использовать нельзя.
+- There are no `.narg`, `.nchr`, `.enabl`/`.dsabl` directives and no `.psect`/`.asect` sections.
+- There are no keyword arguments (`Name parameter=value`) and no `\x` numeric substitution.
+- A macro cannot be called before it is defined.
+- Conditions are checked while the text is expanded, not at compile time: values are known only for constants
+  (`name = expression`) that have already appeared above. Labels cannot be used in conditions.

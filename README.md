@@ -4,6 +4,8 @@
 
 # PDPy11 (C version)
 
+**English** · [Русский](README-RU.md)
+
 A cross-assembler for PDP-11 and its relatives (Elektronika BK-0010 / BK-0011M, UKNC, Soyuz-Neon, Elektronika-60).
 
 This is a port of [PDPy11](https://github.com/pdpy11/pdpy11) 2.0.4 from Python to portable, single-threaded ISO C11
@@ -72,7 +74,7 @@ play_turbo_wav  ["name on tape"]
 Sound is played by the system: PlaySound on Windows, `afplay` on macOS, `paplay` or `aplay` on Linux.
 
 The language and the command line are described in [docs/SYNTAX.md](docs/SYNTAX.md).
-Text macros, conditional assembly and repeat blocks are described in detail in [docs/MACROS.md](docs/MACROS.md) (in Russian).
+Text macros, conditional assembly and repeat blocks are described in detail in [docs/MACROS.md](docs/MACROS.md).
 The converter `convert-to` (included in every release archive, source in `tools/convert-to.c`) rewrites sources
 written for other assemblers in the PDPy11 style, expanding macros and conditional assembly: see
 [docs/CONVERT-TO.md](docs/CONVERT-TO.md).

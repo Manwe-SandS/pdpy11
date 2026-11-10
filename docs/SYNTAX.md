@@ -1,5 +1,7 @@
 # PDPy11: language and command line reference
 
+**English** · [Русский](SYNTAX-RU.md)
+
 This document describes the language accepted by PDPy11 (the C version, compatible with PDPy11 2.0.4) and the
 command line. It is based on the documentation of the Python PDPy11 ([older
 docs](https://github.com/purplesyringa/PDPy11/blob/master/docs.md), [2.x
@@ -515,7 +517,7 @@ HddRead: …
 ## 11. Macros and conditional assembly
 
 PDPy11 has text macros (in the style of MACRO-11), conditional assembly and repeat blocks; they are expanded while the
-source is read. The full description (in Russian) is in [MACROS.md](MACROS.md); here is a summary.
+source is read. The full description is in [MACROS.md](MACROS.md); here is a summary.
 
 ```asm
 ; Psw is 340 (interrupts disabled) unless given
